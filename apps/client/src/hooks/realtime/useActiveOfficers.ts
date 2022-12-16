@@ -10,10 +10,11 @@ import { isUnitCombined } from "@snailycad/utils";
 import type { GetActiveOfficersData } from "@snailycad/types/api";
 import { useCall911State } from "state/dispatch/call-911-state";
 import shallow from "zustand/shallow";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-let ran = false;
 export function useActiveOfficers() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { activeOfficers, setActiveOfficers } = useDispatchState();
   const { state, execute } = useFetch();
   const setActiveOfficer = useLeoState((state) => state.setActiveOfficer);
@@ -24,6 +25,11 @@ export function useActiveOfficers() {
     }),
     shallow,
   );
+
+  useQuery({
+    queryKey: ["/leo/active-officers"],
+    queryFn: getActiveOfficers,
+  });
 
   const handleCallsState = React.useCallback(
     (data: (Officer | CombinedLeoUnit)[]) => {
@@ -72,24 +78,19 @@ export function useActiveOfficers() {
     [user?.id],
   );
 
-  const getActiveOfficers = React.useCallback(async () => {
+  async function getActiveOfficers() {
     const { json } = await execute<GetActiveOfficersData>({
-      path: "/leo/active-officers",
+      path: "/leo/active-officers?from-query=true&includeAll=true",
       noToast: true,
     });
 
     if (json && Array.isArray(json)) {
       handleState(json);
+      return json;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, handleState]);
 
-  React.useEffect(() => {
-    if (!ran) {
-      getActiveOfficers();
-      ran = true;
-    }
-  }, [getActiveOfficers]);
+    return [];
+  }
 
   useListener(SocketEvents.UpdateOfficerStatus, (data: (Officer | CombinedLeoUnit)[] | null) => {
     if (data && Array.isArray(data)) {
@@ -98,7 +99,7 @@ export function useActiveOfficers() {
       return;
     }
 
-    getActiveOfficers();
+    queryClient.invalidateQueries(["/leo/active-officers"]);
   });
 
   return { activeOfficers, setActiveOfficers, state };

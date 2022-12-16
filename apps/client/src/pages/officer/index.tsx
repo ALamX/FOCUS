@@ -169,7 +169,7 @@ export default function OfficerDashboard({
     dispatchState.setBolos(bolos);
 
     dispatchState.setActiveDeputies(activeDeputies);
-    dispatchState.setActiveOfficers(activeOfficers);
+    dispatchState.setActiveOfficers(activeOfficers.officers);
     leoState.setUserOfficers(userOfficers);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -259,7 +259,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({ req, local
     ["/admin/values/codes_10", []],
     ["/911-calls", { calls: [], totalCount: 0 }],
     ["/bolos", []],
-    ["/leo/active-officers", []],
+    ["/leo/active-officers", { officers: [], totalCount: 0 }],
     ["/ems-fd/active-deputies", []],
   ]);
 

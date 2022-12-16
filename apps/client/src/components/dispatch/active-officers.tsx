@@ -13,13 +13,12 @@ import { useAuth } from "context/AuthContext";
 import { CombinedLeoUnit, StatusViewMode, Officer } from "@snailycad/types";
 import { Filter } from "react-bootstrap-icons";
 import { useActiveDispatchers } from "hooks/realtime/useActiveDispatchers";
-import { useTableState, Table } from "components/shared/Table";
+import { useTableState, Table, useAsyncTable } from "components/shared/Table";
 import { useFeatureEnabled } from "hooks/useFeatureEnabled";
 import { UnitRadioChannelModal } from "./active-units/UnitRadioChannelModal";
 import { ActiveUnitsSearch } from "./active-units/ActiveUnitsSearch";
 import { classNames } from "lib/classNames";
 import { useActiveUnitsState } from "state/active-unit-state";
-import { useActiveUnitsFilter } from "hooks/shared/useActiveUnitsFilter";
 import { MergeUnitModal } from "./active-units/MergeUnitModal";
 import { OfficerColumn } from "./active-units/officers/OfficerColumn";
 import { isUnitOfficer } from "@snailycad/utils/typeguards";
@@ -32,21 +31,47 @@ import { useMounted } from "@casper124578/useful";
 import { useCall911State } from "state/dispatch/call-911-state";
 import shallow from "zustand/shallow";
 import { generateContrastColor } from "lib/table/get-contrasting-text-color";
+import type { GetActiveOfficersData } from "@snailycad/types/api";
 
 interface Props {
-  initialOfficers: ActiveOfficer[];
+  initialOfficers: GetActiveOfficersData;
 }
 
 function ActiveOfficers({ initialOfficers }: Props) {
-  const tableState = useTableState({
-    pagination: { pageSize: 12, totalDataCount: initialOfficers.length },
+  const { leoSearch, showLeoFilters, setShowFilters } = useActiveUnitsState(
+    (state) => ({
+      leoSearch: state.leoSearch,
+      showLeoFilters: state.showLeoFilters,
+      setShowFilters: state.setShowFilters,
+    }),
+    shallow,
+  );
+
+  const asyncTable = useAsyncTable({
+    search: leoSearch,
+    fetchOptions: {
+      onResponse: (json: GetActiveOfficersData) => ({
+        data: json.officers,
+        totalCount: json.totalCount,
+      }),
+      path: "/leo/active-officers",
+      pageSize: 12,
+    },
+    scrollToTopOnDataChange: false,
+    totalCount: initialOfficers.totalCount,
+    initialData: initialOfficers.officers,
   });
 
-  const { activeOfficers: _activeOfficers } = useActiveOfficers();
+  const tableState = useTableState({
+    // +2 to account for combined units
+    pagination: { ...asyncTable.pagination, pageSize: asyncTable.pagination.pageSize + 2 },
+  });
+
+  const { activeOfficers: _activeOfficers, setActiveOfficers } = useActiveOfficers();
   const { activeIncidents } = useActiveIncidents();
   const active911Calls = useCall911State((state) => state.calls);
   const isMounted = useMounted();
-  const activeOfficers = isMounted ? _activeOfficers : initialOfficers;
+  const activeOfficers = isMounted ? _activeOfficers : initialOfficers.officers;
 
   const t = useTranslations("Leo");
   const common = useTranslations("Common");
@@ -57,15 +82,6 @@ function ActiveOfficers({ initialOfficers }: Props) {
   const { hasActiveDispatchers } = useActiveDispatchers();
   const { BADGE_NUMBERS, ACTIVE_INCIDENTS, RADIO_CHANNEL_MANAGEMENT, DIVISIONS } =
     useFeatureEnabled();
-  const { leoSearch, showLeoFilters, setShowFilters } = useActiveUnitsState(
-    (state) => ({
-      leoSearch: state.leoSearch,
-      showLeoFilters: state.showLeoFilters,
-      setShowFilters: state.setShowFilters,
-    }),
-    shallow,
-  );
-  const { handleFilter } = useActiveUnitsFilter();
 
   const router = useRouter();
   const isDispatch = router.pathname === "/dispatch";
@@ -76,6 +92,10 @@ function ActiveOfficers({ initialOfficers }: Props) {
     officerState.setTempId(officer.id);
     openModal(ModalIds.ManageUnit);
   }
+
+  React.useEffect(() => {
+    setActiveOfficers(asyncTable.items);
+  }, [asyncTable.items]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="rounded-md card">
@@ -111,80 +131,77 @@ function ActiveOfficers({ initialOfficers }: Props) {
             features={{ isWithinCardOrModal: true }}
             containerProps={{ className: "mb-3 px-4" }}
             tableState={tableState}
-            data={activeOfficers
-              .filter((officer) => handleFilter(officer, leoSearch))
-              .map((officer) => {
-                const color = officer.status?.color;
+            data={activeOfficers.map((officer) => {
+              const color = officer.status?.color;
 
-                const activeIncident =
-                  activeIncidents.find((v) => v.id === officer.activeIncidentId) ?? null;
-                const activeCall =
-                  active911Calls.find((v) => v.id === officer.activeCallId) ?? null;
+              const activeIncident =
+                activeIncidents.find((v) => v.id === officer.activeIncidentId) ?? null;
+              const activeCall = active911Calls.find((v) => v.id === officer.activeCallId) ?? null;
 
-                const useDot = user?.statusViewMode === StatusViewMode.DOT_COLOR;
-                const nameAndCallsign = `${generateCallsign(officer)} ${makeUnitName(officer)}`;
+              const useDot = user?.statusViewMode === StatusViewMode.DOT_COLOR;
+              const nameAndCallsign = `${generateCallsign(officer)} ${makeUnitName(officer)}`;
 
-                return {
-                  id: officer.id,
-                  rowProps: {
-                    style: {
-                      background: !useDot && color ? color : undefined,
-                      color: !useDot && color ? generateContrastColor(color) : undefined,
-                    },
+              return {
+                id: officer.id,
+                rowProps: {
+                  style: {
+                    background: !useDot && color ? color : undefined,
+                    color: !useDot && color ? generateContrastColor(color) : undefined,
                   },
-                  name: nameAndCallsign,
-                  officer: (
-                    <OfficerColumn
-                      nameAndCallsign={nameAndCallsign}
-                      setTempUnit={officerState.setTempId}
-                      officer={officer}
-                    />
-                  ),
-                  badgeNumber: isUnitOfficer(officer) && String(officer.badgeNumber),
-                  department:
-                    (isUnitOfficer(officer) && officer.department?.value.value) ?? common("none"),
-                  division: (
-                    <HoverCard
-                      trigger={
-                        <p className="max-w-xs truncate">
-                          {isUnitOfficer(officer) && formatUnitDivisions(officer)}
-                        </p>
-                      }
-                      contentProps={{ className: "whitespace-pre-wrap" }}
-                    >
-                      {isUnitOfficer(officer) && formatUnitDivisions(officer)}
-                    </HoverCard>
-                  ),
-                  rank: (isUnitOfficer(officer) && officer.rank?.value) ?? common("none"),
-                  status: (
-                    <span className="flex items-center">
-                      {useDot && color ? (
-                        <span
-                          style={{ background: color }}
-                          className="block w-3 h-3 mr-2 rounded-full"
-                        />
-                      ) : null}
-                      {officer.status?.value?.value}
-                    </span>
-                  ),
-                  vehicle: officer.activeVehicle?.value.value ?? common("none"),
-                  incident: (
-                    <ActiveIncidentColumn isDispatch={isDispatch} incident={activeIncident} />
-                  ),
-                  activeCall: <ActiveCallColumn isDispatch={isDispatch} call={activeCall} />,
-                  radioChannel: <UnitRadioChannelModal unit={officer} />,
-                  actions: isDispatch ? (
-                    <Button
-                      disabled={!hasActiveDispatchers}
-                      onPress={() => handleEditClick(officer)}
-                      size="xs"
-                      variant="success"
-                    >
-                      {common("manage")}
-                    </Button>
-                  ) : null,
-                };
-              })}
+                },
+                name: nameAndCallsign,
+                officer: (
+                  <OfficerColumn
+                    nameAndCallsign={nameAndCallsign}
+                    setTempUnit={officerState.setTempId}
+                    officer={officer}
+                  />
+                ),
+                badgeNumber: isUnitOfficer(officer) && String(officer.badgeNumber),
+                department:
+                  (isUnitOfficer(officer) && officer.department?.value.value) ?? common("none"),
+                division: (
+                  <HoverCard
+                    trigger={
+                      <p className="max-w-xs truncate">
+                        {isUnitOfficer(officer) && formatUnitDivisions(officer)}
+                      </p>
+                    }
+                    contentProps={{ className: "whitespace-pre-wrap" }}
+                  >
+                    {isUnitOfficer(officer) && formatUnitDivisions(officer)}
+                  </HoverCard>
+                ),
+                rank: (isUnitOfficer(officer) && officer.rank?.value) ?? common("none"),
+                status: (
+                  <span className="flex items-center">
+                    {useDot && color ? (
+                      <span
+                        style={{ background: color }}
+                        className="block w-3 h-3 mr-2 rounded-full"
+                      />
+                    ) : null}
+                    {officer.status?.value?.value}
+                  </span>
+                ),
+                vehicle: officer.activeVehicle?.value.value ?? common("none"),
+                incident: (
+                  <ActiveIncidentColumn isDispatch={isDispatch} incident={activeIncident} />
+                ),
+                activeCall: <ActiveCallColumn isDispatch={isDispatch} call={activeCall} />,
+                radioChannel: <UnitRadioChannelModal unit={officer} />,
+                actions: isDispatch ? (
+                  <Button
+                    disabled={!hasActiveDispatchers}
+                    onPress={() => handleEditClick(officer)}
+                    size="xs"
+                    variant="success"
+                  >
+                    {common("manage")}
+                  </Button>
+                ) : null,
+              };
+            })}
             columns={[
               { header: t("officer"), accessorKey: "officer" },
               BADGE_NUMBERS ? { header: t("badgeNumber"), accessorKey: "badgeNumber" } : null,

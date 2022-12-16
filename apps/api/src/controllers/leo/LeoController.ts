@@ -1,7 +1,7 @@
 import { Controller, UseBeforeEach, UseBefore } from "@tsed/common";
 import { ContentType, Delete, Description, Get, Post, Put } from "@tsed/schema";
 import { SWITCH_CALLSIGN_SCHEMA } from "@snailycad/schemas";
-import { BodyParams, Context, PathParams } from "@tsed/platform-params";
+import { BodyParams, Context, PathParams, QueryParams } from "@tsed/platform-params";
 import { BadRequest, NotFound } from "@tsed/exceptions";
 import { prisma } from "lib/prisma";
 import { IsAuth } from "middlewares/IsAuth";
@@ -13,11 +13,12 @@ import { validateSchema } from "lib/validateSchema";
 import { Permissions, UsePermissions } from "middlewares/UsePermissions";
 import { getInactivityFilter } from "lib/leo/utils";
 import { findUnit } from "lib/leo/findUnit";
-import { filterInactiveUnits, setInactiveUnitsOffDuty } from "lib/leo/setInactiveUnitsOffDuty";
+import { setInactiveUnitsOffDuty } from "lib/leo/setInactiveUnitsOffDuty";
 import { CombinedLeoUnit, Officer, MiscCadSettings, Feature } from "@snailycad/types";
 import type * as APITypes from "@snailycad/types/api";
 import { IsFeatureEnabled } from "middlewares/is-enabled";
 import { handlePanicButtonPressed } from "lib/leo/send-panic-button-webhook";
+import { createUnitsWhereFilter } from "controllers/admin/manage/manage-units-controller";
 
 @Controller("/leo")
 @UseBeforeEach(IsAuth)
@@ -48,6 +49,9 @@ export class LeoController {
   })
   async getActiveOfficers(
     @Context("cad") cad: { miscCadSettings: MiscCadSettings },
+    @QueryParams("skip", Number) skip = 0,
+    @QueryParams("includeAll", Boolean) includeAll = false,
+    @QueryParams("query", String) query?: string,
   ): Promise<APITypes.GetActiveOfficersData> {
     const unitsInactivityFilter = getInactivityFilter(
       cad,
@@ -59,24 +63,37 @@ export class LeoController {
       setInactiveUnitsOffDuty(unitsInactivityFilter.lastStatusChangeTimestamp);
     }
 
-    const [officers, units] = await prisma.$transaction([
+    const where = {
+      lastStatusChangeTimestamp: { gte: unitsInactivityFilter?.lastStatusChangeTimestamp },
+      status: { NOT: { shouldDo: ShouldDoType.SET_OFF_DUTY } },
+      ...createUnitsWhereFilter({ query, pendingOnly: false }, "OFFICER"),
+    };
+
+    const [officerCount, combinedUnitCount, officers, units] = await prisma.$transaction([
+      prisma.officer.count({ where }),
+      prisma.combinedLeoUnit.count({
+        where: { lastStatusChangeTimestamp: where.lastStatusChangeTimestamp },
+      }),
       prisma.officer.findMany({
-        where: { status: { NOT: { shouldDo: ShouldDoType.SET_OFF_DUTY } } },
+        take: includeAll ? undefined : 12,
+        skip: includeAll ? undefined : skip,
+        orderBy: { updatedAt: "desc" },
+        where,
         include: leoProperties,
       }),
       prisma.combinedLeoUnit.findMany({
+        take: includeAll ? undefined : 12,
+        skip: includeAll ? undefined : skip,
+        orderBy: { lastStatusChangeTimestamp: "desc" },
         include: combinedUnitProperties,
+        where: { lastStatusChangeTimestamp: where.lastStatusChangeTimestamp },
       }),
     ]);
 
-    const officersWithUpdatedStatus = officers.map((u) =>
-      filterInactiveUnits({ unit: u, unitsInactivityFilter }),
-    );
-    const combinedUnitsWithUpdatedStatus = units.map((u) =>
-      filterInactiveUnits({ unit: u, unitsInactivityFilter }),
-    );
-
-    return [...officersWithUpdatedStatus, ...combinedUnitsWithUpdatedStatus];
+    return {
+      officers: [...officers, ...units],
+      totalCount: officerCount + combinedUnitCount,
+    };
   }
 
   @Post("/panic-button")

@@ -58,22 +58,22 @@ export class AdminManageUnitsController {
     @QueryParams("pendingOnly", Boolean) pendingOnly = false,
   ): Promise<APITypes.GetManageUnitsData> {
     const [officerCount, _officers] = await prisma.$transaction([
-      prisma.officer.count({ where: this.createWhere({ query, pendingOnly }, "OFFICER") }),
+      prisma.officer.count({ where: createUnitsWhereFilter({ query, pendingOnly }, "OFFICER") }),
       prisma.officer.findMany({
         take: includeAll ? undefined : 35,
         skip: includeAll ? undefined : skip,
         include: leoProperties,
-        where: this.createWhere({ query, pendingOnly }, "OFFICER"),
+        where: createUnitsWhereFilter({ query, pendingOnly }, "OFFICER"),
       }),
     ]);
 
     const [emsFdDeputiesCount, _emsFdDeputies] = await prisma.$transaction([
-      prisma.emsFdDeputy.count({ where: this.createWhere({ query, pendingOnly }, "DEPUTY") }),
+      prisma.emsFdDeputy.count({ where: createUnitsWhereFilter({ query, pendingOnly }, "DEPUTY") }),
       prisma.emsFdDeputy.findMany({
         take: includeAll ? undefined : 35,
         skip: includeAll ? undefined : skip,
         include: unitProperties,
-        where: this.createWhere({ query, pendingOnly }, "DEPUTY"),
+        where: createUnitsWhereFilter({ query, pendingOnly }, "DEPUTY"),
       }),
     ]);
 
@@ -601,51 +601,51 @@ export class AdminManageUnitsController {
 
     return true;
   }
+}
 
-  private createWhere(
-    { query, pendingOnly }: { query: string; pendingOnly: boolean },
-    type: "OFFICER" | "DEPUTY" = "OFFICER",
-  ) {
-    const [name, surname] = query.toString().toLowerCase().split(/ +/g);
+export function createUnitsWhereFilter(
+  { query, pendingOnly }: { query?: string; pendingOnly: boolean },
+  type: "OFFICER" | "DEPUTY" = "OFFICER",
+) {
+  const [name, surname] = query?.toString().toLowerCase().split(/ +/g) ?? [];
 
-    if (!query) {
-      return pendingOnly
-        ? {
-            whitelistStatus: { status: WhitelistStatus.PENDING },
-          }
-        : {};
-    }
-
-    const where: any = {
-      ...(pendingOnly ? { whitelistStatus: { status: WhitelistStatus.PENDING } } : {}),
-      OR: [
-        { callsign: query },
-        { callsign2: query },
-        { department: { value: { value: { contains: query, mode: "insensitive" } } } },
-        { status: { value: { value: { contains: query, mode: "insensitive" } } } },
-        {
-          citizen: {
-            OR: [
-              {
-                name: { contains: name, mode: "insensitive" },
-                surname: { contains: surname, mode: "insensitive" },
-              },
-              {
-                name: { contains: name, mode: "insensitive" },
-                surname: { contains: surname, mode: "insensitive" },
-              },
-            ],
-          },
-        },
-      ],
-    };
-
-    if (type === "OFFICER") {
-      where.OR.push({
-        divisions: { some: { value: { value: { contains: query, mode: "insensitive" } } } },
-      });
-    }
-
-    return where;
+  if (!query) {
+    return pendingOnly
+      ? {
+          whitelistStatus: { status: WhitelistStatus.PENDING },
+        }
+      : {};
   }
+
+  const where: any = {
+    ...(pendingOnly ? { whitelistStatus: { status: WhitelistStatus.PENDING } } : {}),
+    OR: [
+      { callsign: query },
+      { callsign2: query },
+      { department: { value: { value: { contains: query, mode: "insensitive" } } } },
+      { status: { value: { value: { contains: query, mode: "insensitive" } } } },
+      {
+        citizen: {
+          OR: [
+            {
+              name: { contains: name, mode: "insensitive" },
+              surname: { contains: surname, mode: "insensitive" },
+            },
+            {
+              name: { contains: name, mode: "insensitive" },
+              surname: { contains: surname, mode: "insensitive" },
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  if (type === "OFFICER") {
+    where.OR.push({
+      divisions: { some: { value: { value: { contains: query, mode: "insensitive" } } } },
+    });
+  }
+
+  return where;
 }
