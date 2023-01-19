@@ -96,11 +96,11 @@ export function OfficerDropdown() {
         <Button
           role="listitem"
           className={classNames(isActive("/officer") && "font-semibold")}
-          variant="transparent"
+          variant="bar"
         >
           {t("officer")}
           <span className="mt-1 ml-1">
-            <ChevronDown width={15} height={15} className="text-gray-700 dark:text-gray-300" />
+            <ChevronDown width={15} height={15} className="text-white dark:text-white" />
           </span>
         </Button>
       }
