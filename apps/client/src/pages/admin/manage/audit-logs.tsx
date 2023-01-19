@@ -90,7 +90,7 @@ export default function ManageAuditLogs({ data }: Props) {
           return {
             id: auditLog.id,
             type: auditLog.action.type,
-            executor: auditLog.executor.username,
+            executor: auditLog.executor?.username ?? "Public API",
             createdAt: <FullDate>{auditLog.createdAt}</FullDate>,
             actions: (
               <Button onPress={() => openModal(ModalIds.ViewAuditLogData, auditLog)} size="xs">
@@ -112,11 +112,14 @@ export default function ManageAuditLogs({ data }: Props) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ locale, req }) => {
+export const getServerSideProps: GetServerSideProps = async ({ locale, res, req }) => {
   const [data] = await requestAll(req, [
     ["/admin/manage/cad-settings/audit-logs", { logs: [], totalCount: 0 }],
   ]);
   const user = await getSessionUser(req);
+
+  // https://nextjs.org/docs/going-to-production#caching
+  res.setHeader("Cache-Control", "public, s-maxage=10, stale-while-revalidate=59");
 
   return {
     props: {

@@ -40,11 +40,11 @@ export function CitizenDropdown() {
         <Button
           role="listitem"
           className={classNames(isActive("/citizen") && "font-semibold")}
-          variant="bar"
+          variant="transparent"
         >
           {t("citizen")}
           <span className="mt-1 ml-1">
-            <ChevronDown width={15} height={15} className="text-white dark:text-white" />
+            <ChevronDown width={15} height={15} className="text-gray-700 dark:text-gray-300" />
           </span>
         </Button>
       }

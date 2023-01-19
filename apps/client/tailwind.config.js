@@ -19,7 +19,6 @@ module.exports = {
         tertiary: "#1f1e26",
         quaternary: "#2f2e34",
         quinary: "#454349",
-        sextiary: "#102894",
 
         // "dark-bg": "#111111",
         // "dark-gray": "#2f2f2f",

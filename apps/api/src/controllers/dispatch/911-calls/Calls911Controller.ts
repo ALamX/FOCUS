@@ -44,6 +44,7 @@ import { Feature, IsFeatureEnabled } from "middlewares/is-enabled";
 import { getTranslator } from "utils/get-translator";
 import { HandleInactivity } from "middlewares/handle-inactivity";
 import { handleEndCall } from "lib/calls/handle-end-call";
+import { AuditLogActionType, createAuditLogEntry } from "@snailycad/audit-logger/server";
 
 export const callInclude = {
   position: true,
@@ -82,10 +83,11 @@ export class Calls911Controller {
     @QueryParams("assignedUnit", String) assignedUnit?: string,
   ): Promise<APITypes.Get911CallsData> {
     const inactivityFilter = getInactivityFilter(cad, "call911InactivityTimeout");
+    const inactivityFilterWhere = includeEnded ? {} : inactivityFilter?.filter;
 
     const where: Prisma.Call911WhereInput = {
+      ...(inactivityFilterWhere ?? {}),
       ended: includeEnded ? undefined : false,
-      ...(inactivityFilter?.filter ?? {}),
       OR: query
         ? [
             { descriptionData: { array_contains: query } },
@@ -364,7 +366,10 @@ export class Calls911Controller {
     fallback: (u) => u.isLeo,
     permissions: [Permissions.ManageCallHistory],
   })
-  async purgeCalls(@BodyParams("ids") ids: string[]): Promise<APITypes.DeletePurge911CallsData> {
+  async purgeCalls(
+    @BodyParams("ids") ids: string[],
+    @Context("sessionUserId") sessionUserId: string,
+  ): Promise<APITypes.DeletePurge911CallsData> {
     if (!Array.isArray(ids)) return false;
 
     await Promise.all(
@@ -376,6 +381,13 @@ export class Calls911Controller {
         this.socket.emit911CallDelete(call);
       }),
     );
+
+    await createAuditLogEntry({
+      translationKey: "calls911Purged",
+      action: { type: AuditLogActionType.Calls911Purge, new: ids },
+      executorId: sessionUserId,
+      prisma,
+    });
 
     return true;
   }
@@ -455,6 +467,7 @@ export class Calls911Controller {
     @PathParams("type") callType: "assign" | "unassign",
     @PathParams("callId") callId: string,
     @BodyParams("unit") rawUnitId: string | null,
+    @QueryParams("force", Boolean) force = false,
   ): Promise<APITypes.Post911CallAssignUnAssign> {
     if (!rawUnitId) {
       throw new BadRequest("unitIsRequired");
@@ -527,6 +540,7 @@ export class Calls911Controller {
           callId: call.id,
           type: callType,
           unit,
+          force,
         }),
         statusId: assignedToStatus?.id,
       },

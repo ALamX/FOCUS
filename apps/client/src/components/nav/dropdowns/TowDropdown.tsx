@@ -15,10 +15,10 @@ export function TowDropdown() {
   return (
     <Dropdown
       trigger={
-        <Button className={classNames(isActive("/tow") && "font-semibold")} variant="bar">
+        <Button className={classNames(isActive("/tow") && "font-semibold")} variant="transparent">
           {t("tow")}
           <span className="mt-1 ml-1">
-            <ChevronDown width={15} height={15} className="text-white dark:text-white" />
+            <ChevronDown width={15} height={15} className="text-gray-700 dark:text-gray-300" />
           </span>
         </Button>
       }
