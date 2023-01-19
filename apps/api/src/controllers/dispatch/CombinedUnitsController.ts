@@ -132,6 +132,7 @@ export class CombinedUnitsController {
       throw new NotFound("notFound");
     }
 
+    console.log({ unit });
     const onDutyStatusCode = await prisma.statusValue.findFirst({
       where: {
         shouldDo: ShouldDoType.SET_ON_DUTY,
@@ -143,12 +144,12 @@ export class CombinedUnitsController {
     const [nextCallId, nextIncidentId] = await Promise.all([
       getNextActiveCallId({
         callId: "null",
-        type: "unassign",
+        type: "assign",
         unit,
       }),
       getNextIncidentId({
         incidentId: "null",
-        type: "unassign",
+        type: "assign",
         unit,
       }),
     ]);

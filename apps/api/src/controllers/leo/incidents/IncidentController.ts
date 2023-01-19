@@ -181,7 +181,6 @@ export class IncidentController {
     @PathParams("type") assignType: "assign" | "unassign",
     @PathParams("incidentId") incidentId: string,
     @BodyParams("unit") rawUnitId: string | null,
-    @QueryParams("force", Boolean) force = false,
   ): Promise<APITypes.PutAssignUnassignIncidentsData> {
     if (!rawUnitId) {
       throw new BadRequest("unitIsRequired");
@@ -249,7 +248,6 @@ export class IncidentController {
           incidentId: incident.id,
           type: assignType,
           unit,
-          force,
         }),
       },
     });

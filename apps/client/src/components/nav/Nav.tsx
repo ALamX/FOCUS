@@ -48,7 +48,7 @@ export function Nav({ maxWidth }: Props) {
   }, [viewport]);
 
   return (
-    <nav className="bg-white dark:bg-tertiary shadow-sm sticky top-0 z-30">
+    <nav className="bg-sextiary dark:bg-sextiary shadow-sm sticky top-0 z-30">
       <div style={{ maxWidth: maxWidth ?? "100rem" }} className="mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between h-14">
           <button
@@ -57,16 +57,16 @@ export function Nav({ maxWidth }: Props) {
             className="flex flex-col nav:hidden w-7"
             aria-label="Toggle menu"
           >
-            <span className="my-0.5 rounded-md h-0.5 w-full bg-neutral-800 dark:bg-white " />
-            <span className="my-0.5 rounded-md h-0.5 w-full bg-neutral-800 dark:bg-white " />
-            <span className="my-0.5 rounded-md h-0.5 w-full bg-neutral-800 dark:bg-white " />
+            <span className="my-0.5 rounded-md h-0.5 w-full bg-white dark:bg-white " />
+            <span className="my-0.5 rounded-md h-0.5 w-full bg-white dark:bg-white " />
+            <span className="my-0.5 rounded-md h-0.5 w-full bg-white dark:bg-white " />
           </button>
 
           <div className="relative flex items-center nav:space-x-7">
             <h1 className="text-2xl hidden nav:block">
               <a
                 href="/citizen"
-                className="flex items-center gap-2 py-3 font-bold text-gray-800 dark:text-white"
+                className="flex items-center gap-2 py-3 font-bold text-white dark:text-white"
               >
                 {url ? (
                   <>
@@ -93,7 +93,7 @@ export function Nav({ maxWidth }: Props) {
               className={classNames(
                 "nav:flex",
                 menuOpen
-                  ? "grid place-content-center fixed top-[3.6rem] left-0 bg-white dark:bg-tertiary w-screen space-y-2 py-3 animate-enter"
+                  ? "grid place-content-center fixed top-[3.6rem] left-0 bg-sextiary dark:bg-sextiary w-screen space-y-2 py-3 animate-enter"
                   : "hidden nav:flex-row space-x-1 items-center",
               )}
             >

@@ -140,12 +140,9 @@ function Item({
   );
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async ({ locale, res, req }) => {
+export const getServerSideProps: GetServerSideProps<Props> = async ({ locale, req }) => {
   const user = await getSessionUser(req);
   const [data] = await requestAll(req, [["/admin", null]]);
-
-  // https://nextjs.org/docs/going-to-production#caching
-  res.setHeader("Cache-Control", "public, s-maxage=10, stale-while-revalidate=59");
 
   return {
     props: {

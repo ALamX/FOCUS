@@ -10,17 +10,14 @@ class CustomDocument extends Document {
 
   render() {
     let darkMode = true;
-    let lang = "en";
-
     const session = this.props.__NEXT_DATA__.props.pageProps?.session as User | null;
 
     if (session) {
       darkMode = session.isDarkTheme;
-      lang = session.locale || "en";
     }
 
     return (
-      <Html lang={lang}>
+      <Html lang="en">
         <Head>
           <meta charSet="UTF-8" />
           <link rel="shortcut icon" type="image/png" href="/favicon.png" />

@@ -6,14 +6,7 @@ import { FormRow } from "components/form/FormRow";
 import { Button, TextField } from "@snailycad/ui";
 import { useModal } from "state/modalState";
 import { ModalIds } from "types/ModalIds";
-import dynamic from "next/dynamic";
-
-const ManagePermissionsModal = dynamic(
-  async () =>
-    (await import("components/admin/manage/users/modals/manage-permissions-modal"))
-      .ManagePermissionsModal,
-  { ssr: false },
-);
+import { ManagePermissionsModal } from "components/admin/manage/users/ManagePermissionsModal";
 
 export function AccountInfoTab() {
   const { user } = useAuth();
