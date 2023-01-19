@@ -61,12 +61,10 @@ export default function App({ Component, router, pageProps, ...rest }: AppProps)
     });
   }
 
-  const isServer = typeof window === "undefined";
-
   return (
     <QueryClientProvider client={queryClient}>
       <SSRProvider>
-        <SocketProvider uri={url} options={{ reconnectionDelay: 10_000, autoConnect: !isServer }}>
+        <SocketProvider uri={url} options={{ reconnectionDelay: 10_000 }}>
           <AuthProvider initialData={pageProps}>
             <NextIntlProvider
               defaultTranslationValues={{

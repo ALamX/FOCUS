@@ -58,24 +58,23 @@ export async function validateRecordData(options: Options): Promise<Return> {
   }
 
   const minFinesArr = [
-    penalCode.warningNotApplicable?.fines[0],
-    penalCode.warningApplicable?.fines[0],
-  ];
+    penalCode.warningNotApplicable?.fines[0] ?? 0,
+    penalCode.warningApplicable?.fines[0] ?? 0,
+  ] as number[];
   const maxFinesArr = [
-    penalCode.warningNotApplicable?.fines[1],
-    penalCode.warningApplicable?.fines[1],
-  ];
+    penalCode.warningNotApplicable?.fines[1] ?? 0,
+    penalCode.warningApplicable?.fines[1] ?? 0,
+  ] as number[];
 
-  const minFine = getMinOrMax(minFinesArr, "min") ?? 0;
-  const maxFine = getMinOrMax(maxFinesArr, "max") ?? minFine;
-
+  const minFine = Math.min(...minFinesArr);
+  const maxFine = Math.max(...maxFinesArr);
   const minMaxFines = [minFine, maxFine];
 
   const minMaxPrisonTerm = penalCode.warningNotApplicable?.prisonTerm ?? [];
   const minMaxBail = (isBailEnabled && penalCode.warningNotApplicable?.bail) || [];
-  const minMaxCounts = [1, 10] as [number, number];
+  const minMaxCounts = [1, 10];
 
-  if (options.counts && !isCorrect(minMaxCounts, options.counts)) {
+  if (options.counts && exists(minMaxCounts) && !isCorrect(minMaxCounts, options.counts)) {
     const name = `violations.${options.penalCodeId}.counts`;
 
     errors[name] = {
@@ -130,28 +129,6 @@ function isCorrect(minMax: [number, number], value: number) {
   }
 
   return value >= min && value <= max;
-}
-
-function getMinOrMax(arr: (number | undefined)[], type: "min" | "max") {
-  const [min1, min2] = arr;
-
-  if (min1 && min2) {
-    return Math[type](min1, min2);
-  }
-
-  if (!min1 && !min2) {
-    return null;
-  }
-
-  if (!min1 && min2) {
-    return min2;
-  }
-
-  if (!min2 && min1) {
-    return min1;
-  }
-
-  return null;
 }
 
 function exists(values: (number | undefined)[]): values is [number, number] {

@@ -170,6 +170,8 @@ function _ActiveCalls({ initialData }: Props) {
                 location: `${call.location} ${call.postal ? `(${call.postal})` : ""}`,
                 description: <CallDescription data={call} />,
                 situationCode: call.situationCode?.value.value ?? common("none"),
+                priority: call.type?.priority,
+                type: call.type?.value,
                 updatedAt: <FullDate>{call.updatedAt}</FullDate>,
                 assignedUnits: (
                   <AssignedUnitsColumn
@@ -191,12 +193,8 @@ function _ActiveCalls({ initialData }: Props) {
               };
             })}
             columns={[
-              { header: "#", accessorKey: "caseNumber" },
-              { header: t("caller"), accessorKey: "name" },
+              { header: t("priority"), accessorKey: "priority" },
               { header: t("location"), accessorKey: "location" },
-              { header: common("description"), accessorKey: "description" },
-              { header: t("situationCode"), accessorKey: "situationCode" },
-              { header: common("updatedAt"), accessorKey: "updatedAt" },
               { header: t("assignedUnits"), accessorKey: "assignedUnits" },
               { header: common("actions"), accessorKey: "actions" },
             ]}

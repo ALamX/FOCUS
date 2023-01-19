@@ -19,6 +19,7 @@ export const buttonVariants = {
   link: "bg-transparent hover:bg-transparent text-gray-800 dark:text-gray-200 px-0 p-1 underline",
   blue: "bg-blue-500 dark:bg-blue-500 hover:bg-blue-600 dark:hover:bg-blue-600 dark:border dark:border-blue-800 text-black",
   amber: "text-black bg-orange-500 dark:bg-orange-500 hover:bg-orange-600 dark:hover:bg-orange-600",
+  bar: "bg-transparent text-white dark:text-white",
 };
 
 export const buttonSizes = {

@@ -118,7 +118,7 @@ export function ActiveBolos({ initialBolos }: Props) {
   return (
     <div className="mt-3 card">
       <header className="flex items-center justify-between p-2 px-4 bg-gray-200 dark:bg-secondary">
-        <h3 className="text-xl font-semibold">{t("Bolos.activeBolos")}</h3>
+        <h1 className="text-xl font-semibold">{t("Bolos.activeBolos")}</h1>
 
         <div>
           <Button
@@ -161,7 +161,7 @@ export function ActiveBolos({ initialBolos }: Props) {
                 model: bolo.model || "—",
                 plate: bolo.plate || "—",
                 color: bolo.color || "—",
-                description: <CallDescription data={descriptionData} />,
+                description: <CallDescription data={descriptionData} nonCard />,
                 officer: bolo.officer
                   ? `${generateCallsign(bolo.officer)} ${makeUnitName(bolo.officer)}`
                   : t("Leo.dispatch"),

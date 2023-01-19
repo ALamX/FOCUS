@@ -5,7 +5,6 @@ interface Options {
   incidentId: string;
   type: "assign" | "unassign";
   unit: Pick<EmsFdDeputy | Officer | CombinedLeoUnit, "id"> & { activeIncidentId?: string | null };
-  force?: boolean;
 }
 
 /**
@@ -13,10 +12,6 @@ interface Options {
  * once the incident is ended, `activeIncidentId` will be the latest incident in the stack.
  */
 export async function getNextIncidentId(options: Options) {
-  if (options.force) {
-    return options.incidentId;
-  }
-
   let nextActiveIncidentId =
     options.type === "assign"
       ? options.unit.activeIncidentId

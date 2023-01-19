@@ -5,7 +5,6 @@ interface Options {
   callId: string;
   type: "assign" | "unassign";
   unit: Pick<EmsFdDeputy | Officer | CombinedLeoUnit, "id"> & { activeCallId?: string | null };
-  force?: boolean;
 }
 
 /**
@@ -13,10 +12,6 @@ interface Options {
  * once the call is ended, the new activeCall will be the latest call in the stack.
  */
 export async function getNextActiveCallId(options: Options) {
-  if (options.force) {
-    return options.callId;
-  }
-
   let nextActiveCallId =
     options.type === "assign" ? (options.unit.activeCallId ? undefined : options.callId) : null;
 
