@@ -1,6 +1,6 @@
 import type * as Types from "@snailycad/types";
 import type { AuditLogActionType } from "./action-types";
-import type { Citizen, User, Officer, EmsFdDeputy } from "@prisma/client";
+import type { Citizen, User, Officer, EmsFdDeputy, Feature } from "@prisma/client";
 
 export type AuditLogActions =
   | UserBanAction
@@ -27,7 +27,10 @@ export type AuditLogActions =
   | CadSettingsUpdate
   | MiscCadSettingsUpdate
   | UserApiTokenDelete
-  | User2FADelete;
+  | User2FADelete
+  | Calls911Purge
+  | CadAPITokenRegenerated
+  | CADFeaturesUpdate;
 
 type BaseAuditLogAction<ActionType extends AuditLogActionType, Previous, New> = {
   type: ActionType;
@@ -161,4 +164,19 @@ export type MiscCadSettingsUpdate = BaseAuditLogAction<
   AuditLogActionType.MiscCadSettingsUpdate,
   Types.MiscCadSettings,
   Types.MiscCadSettings
+>;
+export type Calls911Purge = BaseAuditLogAction<
+  AuditLogActionType.Calls911Purge,
+  undefined,
+  string[]
+>;
+export type CadAPITokenRegenerated = BaseAuditLogAction<
+  AuditLogActionType.CadAPITokenRegenerated,
+  undefined,
+  undefined
+>;
+export type CADFeaturesUpdate = BaseAuditLogAction<
+  AuditLogActionType.CADFeaturesUpdate,
+  (Types.Feature | Feature)[],
+  (Types.Feature | Feature)[]
 >;
