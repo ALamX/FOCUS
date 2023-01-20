@@ -42,13 +42,13 @@ export function AccountDropdown() {
           <Button
             variant={null}
             className={classNames(
-              "relative inline-flex justify-center w-full px-2 py-2 text-sm font-medium text-neutral-800 dark:text-white bg-transparent rounded-md transition-colors hover:bg-gray-200 dark:hover:bg-secondary focus:outline-none",
-              isOpen && "bg-gray-200 dark:bg-secondary",
+              "relative inline-flex justify-center w-full px-2 py-2 text-sm font-medium text-white dark:text-white bg-transparent rounded-md transition-colors hover:bg-secondary dark:hover:bg-secondary focus:outline-none",
+              isOpen && "bg-sextiary dark:bg-sextiary",
             )}
           >
             <span className="mr-2.5"> {user ? user.username : null}</span>
 
-            <PersonCircle className="text-neutral-800 dark:text-gray-300" width={20} height={20} />
+            <PersonCircle className="text-white dark:text-white" width={20} height={20} />
           </Button>
         }
       >
@@ -60,7 +60,7 @@ export function AccountDropdown() {
         {cad?.version ? (
           <>
             <div className="px-1 py-1">
-              <p className="text-gray-900 dark:text-gray-200 block w-full px-3 py-1.5 text-base cursor-default">
+              <p className="text-white dark:text-white block w-full px-3 py-1.5 text-base cursor-default">
                 v{cad.version.currentVersion}
                 <br /> {cad.version.currentCommitHash}
               </p>
