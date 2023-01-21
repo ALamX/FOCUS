@@ -47,7 +47,6 @@ export function AccountDropdown() {
             )}
           >
             <span className="mr-2.5"> {user ? user.username : null}</span>
-
             <PersonCircle className="text-white dark:text-white" width={20} height={20} />
           </Button>
         }
@@ -66,7 +65,7 @@ export function AccountDropdown() {
               </p>
             </div>
 
-            <hr className="my-2 mx-2 border-t border-secondary dark:border-quinary" />
+            <hr className="my-2 mx-2 border-t border-quinary dark:border-quinary" />
 
             <Dropdown.Item
               className="flex items-center gap-2"

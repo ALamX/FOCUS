@@ -126,7 +126,7 @@ export function Nav({ maxWidth }: Props) {
                   role="listitem"
                   href="/courthouse"
                   className={classNames(
-                    "p-1 nav:px-2 text-gray-700 dark:text-gray-200 transition duration-300",
+                    "p-1 nav:px-2 text-white dark:text-white transition duration-300",
                     isActive("/courthouse") && "font-semibold",
                   )}
                 >
@@ -145,7 +145,7 @@ export function Nav({ maxWidth }: Props) {
                   role="listitem"
                   href="/admin"
                   className={classNames(
-                    "p-1 nav:px-2 text-gray-700 dark:text-gray-200 transition duration-300",
+                    "p-1 nav:px-2 text-white dark:text-white transition duration-300",
                     isActive("/admin") && "font-semibold",
                   )}
                 >

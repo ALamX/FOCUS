@@ -27,7 +27,7 @@ export function Dropdown({ trigger, children, extra, open, modal, onOpenChange, 
         {...rest}
         className={classNames(
           rest.className ?? "dropdown-left",
-          "z-50 p-2 bg-gray-200 rounded-md shadow-md dark:shadow-primary dropdown-fade w-40 dark:bg-primary dark:border dark:border-secondary",
+          "z-50 p-2 bg-sextiary rounded-md shadow-md dark:shadow-primary dropdown-fade w-40 dark:bg-sextiary dark:border dark:border-sextiary",
         )}
       >
         {children}
@@ -41,7 +41,7 @@ Dropdown.Item = function DropdownItem({ children, ...rest }: Omit<ButtonProps, "
     <DropdownMenu.Item asChild>
       <Button
         {...rest}
-        variant="transparent"
+        variant="bar"
         className={classNames(
           "my-0.5 rounded-md transition-colors w-full text-left bg-transparent",
           "hover:bg-gray-400 focus:bg-gray-400 dark:hover:bg-secondary dark:focus:bg-secondary",
