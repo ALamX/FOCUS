@@ -43,6 +43,15 @@ export class HandleInactivity implements MiddlewareMethods {
 
     if (!hasFiveMinTimeoutEnded) return;
 
+    if (cad.miscCadSettingsId) {
+      await prisma.miscCadSettings.update({
+        where: { id: cad.miscCadSettingsId },
+        data: {
+          lastInactivitySyncTimestamp: new Date(),
+        },
+      });
+    }
+
     const unitsInactivityFilter = getInactivityFilter(
       cad,
       "unitInactivityTimeout",
@@ -86,40 +95,38 @@ export class HandleInactivity implements MiddlewareMethods {
     if (activeWarrantsInactivityTimeout) {
       await this.endInactiveWarrants(activeWarrantsInactivityTimeout.updatedAt);
     }
-
-    if (cad.miscCadSettingsId) {
-      await prisma.miscCadSettings.update({
-        where: { id: cad.miscCadSettingsId },
-        data: {
-          lastInactivitySyncTimestamp: new Date(),
-        },
-      });
-    }
   }
 
   protected async endInactiveIncidents(updatedAt: Date) {
-    const incidents = await prisma.leoIncident.findMany({
-      where: { isActive: true, updatedAt: { not: { gte: updatedAt } } },
-      select: { id: true, unitsInvolved: true },
-    });
+    try {
+      const incidents = await prisma.leoIncident.findMany({
+        where: { isActive: true, updatedAt: { not: { gte: updatedAt } } },
+        select: { id: true, unitsInvolved: true },
+      });
 
-    await Promise.allSettled(incidents.map((incident) => this.endIncident(incident)));
+      await Promise.allSettled(incidents.map((incident) => this.endIncident(incident)));
+    } catch {
+      console.log("Failed to end inactive incidents. Skipping...");
+    }
   }
 
   protected async endInactiveDispatchers(updatedAt: Date) {
-    const activeDispatchers = await prisma.activeDispatchers.findMany({
-      where: { updatedAt: { not: { gte: updatedAt } } },
-    });
-
-    await Promise.allSettled(
-      activeDispatchers.map(async (dispatcher) => {
-        await prisma.activeDispatchers.delete({ where: { id: dispatcher.id } });
-      }),
-    );
+    try {
+      await prisma.activeDispatchers.deleteMany({
+        where: { updatedAt: { not: { gte: updatedAt } } },
+      });
+    } catch {
+      console.log("Failed to end inactive dispatchers. Skipping...");
+    }
   }
 
   protected async endIncident(incident: { id: string; unitsInvolved: IncidentInvolvedUnit[] }) {
     try {
+      await Promise.allSettled([
+        prisma.leoIncident.update({ where: { id: incident.id }, data: { isActive: false } }),
+        prisma.incidentInvolvedUnit.deleteMany({ where: { incidentId: incident.id } }),
+      ]);
+
       const unitPromises = incident.unitsInvolved.map(async (unit) => {
         const { prismaName, unitId } = getPrismaNameActiveCallIncident({ unit });
         if (!prismaName || !unitId) return;
@@ -137,20 +144,25 @@ export class HandleInactivity implements MiddlewareMethods {
         });
       });
 
-      await Promise.allSettled([
-        ...unitPromises,
-        prisma.incidentInvolvedUnit.deleteMany({ where: { incidentId: incident.id } }),
-        prisma.leoIncident.update({ where: { id: incident.id }, data: { isActive: false } }),
-      ]);
+      await Promise.allSettled(unitPromises);
+
+      this.socket.emitUpdateActiveIncident({
+        ...incident,
+        isActive: false,
+      });
     } catch (error) {
       captureException(error);
     }
   }
 
   protected async endInactiveBolos(updatedAt: Date) {
-    await prisma.bolo.deleteMany({
-      where: { updatedAt: { not: { gte: updatedAt } } },
-    });
+    try {
+      await prisma.bolo.deleteMany({
+        where: { updatedAt: { not: { gte: updatedAt } } },
+      });
+    } catch {
+      console.log("Failed to end inactive bolos. Skipping...");
+    }
   }
 
   protected async endInactiveCalls(updatedAt: Date) {
@@ -160,7 +172,7 @@ export class HandleInactivity implements MiddlewareMethods {
         select: { assignedUnits: true, id: true },
       });
 
-      await Promise.allSettled(calls.map((call) => handleEndCall(call)));
+      await Promise.allSettled(calls.map((call) => handleEndCall({ call, socket: this.socket })));
     } catch (error) {
       console.log("Failed to end inactive calls. Skipping...");
       captureException(error);
@@ -168,9 +180,14 @@ export class HandleInactivity implements MiddlewareMethods {
   }
 
   protected async endInactiveWarrants(updatedAt: Date) {
-    await prisma.warrant.updateMany({
-      where: { updatedAt: { not: { gte: updatedAt } } },
-      data: { status: "INACTIVE" },
-    });
+    try {
+      await prisma.warrant.updateMany({
+        where: { updatedAt: { not: { gte: updatedAt } } },
+        data: { status: "INACTIVE" },
+      });
+    } catch (error) {
+      console.log(error);
+      console.log("Failed to end inactive bolos. Skipping...");
+    }
   }
 }

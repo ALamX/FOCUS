@@ -194,6 +194,7 @@ export class Calls911Controller {
         situationCodeId: data.situationCode ?? null,
         viaDispatch: isFromDispatch,
         typeId: data.type,
+        extraFields: data.extraFields || undefined,
       },
       include: callInclude,
     });
@@ -304,6 +305,7 @@ export class Calls911Controller {
         descriptionData: data.descriptionData ?? undefined,
         situationCodeId: data.situationCode === null ? null : data.situationCode,
         typeId: data.type,
+        extraFields: data.extraFields || undefined,
       },
     });
 
@@ -407,7 +409,7 @@ export class Calls911Controller {
       throw new NotFound("callNotFound");
     }
 
-    await handleEndCall(call);
+    await handleEndCall({ call, socket: this.socket });
     await Promise.all([
       this.socket.emit911CallDelete(call),
       this.socket.emitUpdateOfficerStatus(),
