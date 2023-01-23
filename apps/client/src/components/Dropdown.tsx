@@ -66,7 +66,7 @@ Dropdown.LinkItem = function LinkItem({
           "outline-none block rounded-md transition-colors w-full text-left bg-transparent",
           "dark:hover:bg-secondary hover:bg-gray-400 focus:bg-gray-400 dark:focus:bg-secondary",
           buttonSizes.sm,
-          buttonVariants.transparent,
+          buttonVariants.bar,
           rest.className,
         )}
         href={rest.href!}
