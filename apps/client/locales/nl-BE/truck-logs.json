@@ -1,15 +1,15 @@
 {
   "TruckLogs": {
-    "truckLogs": "Truck Logs",
-    "createTruckLog": "Create Truck Log",
-    "editTruckLog": "Edit Truck Log",
-    "deleteTruckLog": "Delete Truck Log",
-    "driver": "Driver",
-    "vehicle": "Vehicle",
-    "startedAt": "Started At",
-    "endedAt": "Ended At",
-    "noTruckLogs": "You don't have any truck logs yet.",
-    "notes": "Notes",
-    "alert_deleteTruckLog": "Are you sure you want to delete this truck log? This action cannot be undone."
+    "truckLogs": "Vrachtwagen logs",
+    "createTruckLog": "Creër vrachtwagen log",
+    "editTruckLog": "Pas vrachtwagen log aan",
+    "deleteTruckLog": "Verwijder vrachtwagen log",
+    "driver": "Bestuurder",
+    "vehicle": "Voertuig",
+    "startedAt": "Begonnen op",
+    "endedAt": "Gestopt op",
+    "noTruckLogs": "U heeft nog geen vrachtwagen logs.",
+    "notes": "Notities",
+    "alert_deleteTruckLog": "Weet je zeker dat je deze vrachtwagen log wilt verwijderen ? Dit kan niet ongedaan worden."
   }
 }

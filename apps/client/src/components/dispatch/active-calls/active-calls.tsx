@@ -2,7 +2,7 @@ import * as React from "react";
 import { Manage911CallModal } from "components/dispatch/modals/Manage911CallModal";
 import { useRouter } from "next/router";
 import { Full911Call, useDispatchState } from "state/dispatch/dispatch-state";
-import type { AssignedUnit } from "@snailycad/types";
+import { AssignedUnit, WhitelistStatus } from "@snailycad/types";
 import { useTranslations } from "use-intl";
 import useFetch from "lib/useFetch";
 import { useLeoState } from "state/leo-state";
@@ -26,6 +26,7 @@ import { ActiveCallsActionsColumn } from "./actions-column";
 import { useCall911State } from "state/dispatch/call-911-state";
 import { useActiveCalls } from "hooks/realtime/use-active-calls";
 import { shallow } from "zustand/shallow";
+import { Status } from "components/shared/Status";
 
 interface Props {
   initialData: Get911CallsData;
@@ -87,6 +88,8 @@ function _ActiveCalls({ initialData }: Props) {
   }, [asyncTable.items]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tableState = useTableState({
+    defaultHiddenColumns: ["type", "priority"],
+    tableId: "active-calls",
     pagination: asyncTable.pagination,
     search: { value: search, setValue: setSearch },
   });
@@ -135,6 +138,11 @@ function _ActiveCalls({ initialData }: Props) {
     handleAssignUnassignToCall(call, "unassign", unit.unit?.id);
   }
 
+  const _calls = React.useMemo(() => {
+    if (isDispatch) return calls;
+    return calls.filter((call) => call.status === WhitelistStatus.ACCEPTED);
+  }, [calls, isDispatch]);
+
   if (!CALLS_911) {
     return null;
   }
@@ -152,7 +160,7 @@ function _ActiveCalls({ initialData }: Props) {
           <Table
             tableState={tableState}
             features={{ isWithinCardOrModal: true }}
-            data={calls.map((call) => {
+            data={_calls.map((call) => {
               const isUnitAssigned = isMounted && isUnitAssignedToCall(call);
 
               return {
@@ -165,14 +173,15 @@ function _ActiveCalls({ initialData }: Props) {
                     call.notifyAssignedUnits && "animate-call-updated",
                   ),
                 },
+                type: call.type?.value.value ?? common("none"),
+                priority: call.type?.priority ?? common("none"),
+                status: <Status state={call.status}>{call.status?.toLowerCase()}</Status>,
                 caseNumber: `#${call.caseNumber}`,
                 name: `${call.name} ${call.viaDispatch ? `(${leo("dispatch")})` : ""}`,
                 location: `${call.location} ${call.postal ? `(${call.postal})` : ""}`,
                 description: <CallDescription data={call} />,
                 situationCode: call.situationCode?.value.value ?? common("none"),
                 updatedAt: <FullDate>{call.updatedAt}</FullDate>,
-                type: call.type?.value.value,
-                priority: call.type?.priority,
                 assignedUnits: (
                   <AssignedUnitsColumn
                     handleAssignToCall={(call, unitId) =>
@@ -193,8 +202,11 @@ function _ActiveCalls({ initialData }: Props) {
               };
             })}
             columns={[
+              { header: "#", accessorKey: "caseNumber" },
+              isDispatch ? { header: t("status"), accessorKey: "status" } : null,
+              { header: t("caller"), accessorKey: "name" },
+              { header: common("type"), accessorKey: "type" },
               { header: t("priority"), accessorKey: "priority" },
-              { header: t("type"), accessorKey: "type" },
               { header: t("location"), accessorKey: "location" },
               { header: t("assignedUnits"), accessorKey: "assignedUnits" },
               { header: common("actions"), accessorKey: "actions" },

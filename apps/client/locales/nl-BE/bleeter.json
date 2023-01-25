@@ -1,14 +1,14 @@
 {
   "Bleeter": {
-    "bleeter": "Bleeter",
-    "noPosts": "There are no bleeter posts yet. Check back later",
-    "createBleet": "Create bleet",
-    "editBleet": "Edit bleet",
-    "deleteBleet": "Delete Bleet",
-    "viewBleet": "View bleet",
-    "headerImage": "Header Image",
-    "bleetTitle": "Bleet title",
-    "bleetBody": "Bleet Body",
-    "alert_deleteBleet": "Are you sure want to delete \"<span>{title}</span>\"? This action cannot be undone."
+    "bleeter": "Tweeter",
+    "noPosts": "Er zijn nog geen posts.",
+    "createBleet": "Maak tweet ",
+    "editBleet": "Pas tweet aan",
+    "deleteBleet": "Tweet verwijderen",
+    "viewBleet": "Tweet bekijken",
+    "headerImage": "Header foto",
+    "bleetTitle": "Tweet titel",
+    "bleetBody": "Tweet Body",
+    "alert_deleteBleet": "Zeker dat je \"<span>{title}</span>\" wilt verwijderen? Deze actie kan niet ongedaan gemaakt worden."
   }
 }
