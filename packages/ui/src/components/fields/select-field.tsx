@@ -91,9 +91,7 @@ export function SelectField<T extends SelectValue>(props: SelectFieldProps<T>) {
               buttonVariants.default,
               buttonSizes.sm,
               "cursor-default rounded-md w-full h-10 flex items-center justify-between border !bg-white dark:!bg-secondary hover:dark:!bg-secondary hover:dark:!brightness-100",
-              (state.isOpen || state.isFocused) &&
-                !props.isDisabled &&
-                "dark:!border-gray-500 !border-gray-500",
+              (state.isOpen || state.isFocused) && "dark:!border-gray-500 !border-gray-500",
               props.isDisabled && "!cursor-not-allowed opacity-80",
               props.errorMessage
                 ? "!border-red-500 focus:!border-red-700 dark:focus:!border-red-700"

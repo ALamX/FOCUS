@@ -1,7 +1,7 @@
 import * as React from "react";
 import { getUnitDepartment, makeUnitName } from "lib/utils";
 import { useTranslations } from "use-intl";
-import { SelectField } from "@snailycad/ui";
+import { DatePickerField, SelectField } from "@snailycad/ui";
 import { useGenerateCallsign } from "hooks/useGenerateCallsign";
 import { Table, useAsyncTable, useTableState } from "components/shared/Table";
 import { TabsContent } from "components/shared/TabList";
@@ -48,14 +48,37 @@ export function DepartmentTimeLogsTab() {
       >
         <SelectField
           className="max-w-xs w-full"
-          label={"Group By"}
+          label={t("Management.groupBy")}
           selectedKey={groupedBy}
           onSelectionChange={(event) => setGroupedBy(event as "departments" | "units")}
           options={[
-            { label: "Departments", value: "departments" },
-            { label: "Units", value: "units" },
+            { label: t("Management.departments"), value: "departments" },
+            { label: t("Management.units"), value: "units" },
           ]}
         />
+
+        {groupedBy === "units" ? (
+          <>
+            <DatePickerField
+              isClearable
+              className="max-w-xs w-full"
+              label={t("Management.startDate")}
+              value={asyncTable.filters?.startDate}
+              onChange={(date) => {
+                asyncTable.setFilters((prev) => ({ ...prev, startDate: date?.toString() }));
+              }}
+            />
+            <DatePickerField
+              isClearable
+              className="max-w-xs w-full"
+              label={t("Management.endDate")}
+              value={asyncTable.filters?.endDate}
+              onChange={(date) => {
+                asyncTable.setFilters((prev) => ({ ...prev, endDate: date?.toString() }));
+              }}
+            />
+          </>
+        ) : null}
       </SearchArea>
 
       {asyncTable.items.length <= 0 ? (

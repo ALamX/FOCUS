@@ -155,7 +155,7 @@ export type Note = Prisma.Note & {
 };
 
 export type RegisteredVehicle = Prisma.RegisteredVehicle & {
-  citizen: Prisma.Citizen;
+  citizen?: Prisma.Citizen | null;
   model: VehicleValue;
   registrationStatus: Prisma.Value;
   insuranceStatus?: Prisma.Value | null;
@@ -289,7 +289,7 @@ export type OfficerLog = Prisma.OfficerLog;
 
 export type ImpoundedVehicle = Prisma.ImpoundedVehicle & {
   officer?: Officer | null;
-  vehicle: Prisma.RegisteredVehicle & { citizen: BaseCitizen; model: VehicleValue };
+  vehicle: Prisma.RegisteredVehicle & { citizen?: BaseCitizen | null; model: VehicleValue };
   location: Prisma.Value;
 };
 
@@ -384,6 +384,13 @@ export type EmsFdDeputy = Prisma.EmsFdDeputy & {
   user?: Officer["user"] | null;
   whitelistStatus?: Officer["whitelistStatus"];
   activeVehicle: EmergencyVehicleValue | null;
+};
+
+export type CombinedEmsFdUnit = Prisma.CombinedEmsFdUnit & {
+  status: EmsFdDeputy["status"];
+  department: EmsFdDeputy["department"];
+  deputies: Omit<EmsFdDeputy, "activeIncident">[];
+  activeVehicle?: EmsFdDeputy["activeVehicle"];
 };
 
 export type TruckLog = Prisma.TruckLog & {
