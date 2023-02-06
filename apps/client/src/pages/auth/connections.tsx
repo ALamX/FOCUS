@@ -1,5 +1,5 @@
+import * as React from "react";
 import { useTranslations } from "use-intl";
-
 import type { GetServerSideProps } from "next";
 import { getTranslations } from "lib/getTranslation";
 import { Button } from "@snailycad/ui";
@@ -7,34 +7,51 @@ import { getSessionUser } from "lib/auth";
 import { useAuth } from "context/AuthContext";
 import { Title } from "components/shared/Title";
 import { VersionDisplay } from "components/shared/VersionDisplay";
-import { WhitelistStatus } from "@snailycad/types";
 import { canUseThirdPartyConnections } from "lib/utils";
 import { useFeatureEnabled } from "hooks/useFeatureEnabled";
 import { Discord, Steam } from "react-bootstrap-icons";
 import { getAPIUrl } from "@snailycad/utils/api-url";
 import { useRouter } from "next/router";
+import { doesUserHaveAllRequiredConnections } from "lib/validation/does-user-have-required-connections";
 
-export default function AccountPendingPage() {
+export default function RequiredConnectionsPage() {
   const { user, cad } = useAuth();
 
   const router = useRouter();
-  const t = useTranslations("Auth");
+  const t = useTranslations();
   const { DISCORD_AUTH, STEAM_OAUTH } = useFeatureEnabled();
 
-  if (user?.whitelistStatus !== WhitelistStatus.PENDING) {
-    return <main className="flex justify-center pt-20">This account is not pending access.</main>;
+  const _doesUserHaveAllRequiredConnections =
+    user && doesUserHaveAllRequiredConnections({ user, features: cad?.features });
+
+  React.useEffect(() => {
+    const from = typeof router.query.from === "string" ? router.query.from : "/citizen";
+
+    if (_doesUserHaveAllRequiredConnections) {
+      router.push(from);
+    }
+  }, [_doesUserHaveAllRequiredConnections]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (_doesUserHaveAllRequiredConnections) {
+    return (
+      <main className="flex justify-center pt-20">
+        This account does not require more connections.
+      </main>
+    );
   }
 
   const rawSuccessMessage = router.query.success as string | undefined;
   const successMessages = {
-    discord: t("discordSyncSuccess"),
-    steam: t("steamSyncSuccess"),
+    discord: t("Auth.discordSyncSuccess"),
+    steam: t("Auth.steamSyncSuccess"),
   } as Record<string, string>;
   const successMessage = rawSuccessMessage && successMessages[rawSuccessMessage];
 
   const useThirdPartyConnectionsAbility = canUseThirdPartyConnections();
-  const showSteamOAuth = STEAM_OAUTH && useThirdPartyConnectionsAbility;
-  const showDiscordOAuth = DISCORD_AUTH && useThirdPartyConnectionsAbility;
+
+  const showSteamOAuth = STEAM_OAUTH && useThirdPartyConnectionsAbility && !user?.steamId?.trim();
+  const showDiscordOAuth =
+    DISCORD_AUTH && useThirdPartyConnectionsAbility && !user?.discordId?.trim();
 
   function handleDiscordLogin() {
     const url = getAPIUrl();
@@ -52,7 +69,7 @@ export default function AccountPendingPage() {
 
   return (
     <>
-      <Title renderLayoutTitle={false}>{t("accountPending")}</Title>
+      <Title renderLayoutTitle={false}>{t("Auth.connections")}</Title>
 
       <main className="flex flex-col items-center justify-center pt-20">
         <div className="w-full max-w-md p-6 bg-gray-100 rounded-lg shadow-md dark:bg-primary dark:border dark:border-secondary">
@@ -66,10 +83,12 @@ export default function AccountPendingPage() {
           ) : null}
 
           <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
-            {t("accountPending")}
+            {t("Auth.connections")}
           </h1>
 
-          <p className="my-3 text-base text-gray-800 dark:text-white">{t("accountPendingText")}</p>
+          <p className="my-3 text-base text-gray-800 dark:text-white">
+            {t("Auth.connectionsText")}
+          </p>
 
           <div className="my-5 flex items-center gap-2">
             <span className="h-[2px] bg-secondary w-full rounded-md" />
@@ -82,7 +101,7 @@ export default function AccountPendingPage() {
               className="flex items-center justify-center gap-3 w-full"
             >
               <Discord />
-              {t("syncDiscord")}
+              {t("Account.connectDiscord")}
             </Button>
           ) : null}
 
@@ -93,7 +112,7 @@ export default function AccountPendingPage() {
               className="flex items-center justify-center gap-3 w-full mt-2"
             >
               <Steam />
-              {t("syncSteam")}
+              {t("Account.connectSteam")}
             </Button>
           ) : null}
         </div>
@@ -117,7 +136,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, locale }) =>
   return {
     props: {
       session: user,
-      messages: await getTranslations(["auth"], user?.locale ?? locale),
+      messages: await getTranslations(["auth", "account"], user?.locale ?? locale),
     },
   };
 };

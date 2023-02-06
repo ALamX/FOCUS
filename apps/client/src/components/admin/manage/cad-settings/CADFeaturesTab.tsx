@@ -58,7 +58,7 @@ const FEATURES_LIST: Record<Feature, FeatureItem> = {
         When enabled, this will allow users to login and register with Discord.{" "}
         <a
           className="underline"
-          href="https://cad-docs.caspertheghost.me/docs/discord-integration/discord-authentication"
+          href="https://docs.snailycad.org/docs/discord-integration/discord-authentication"
         >
           Click here for Documentation
         </a>
@@ -163,7 +163,7 @@ const FEATURES_LIST: Record<Feature, FeatureItem> = {
         When enabled, this will allow users to login and register with Steam.{" "}
         <a
           className="underline"
-          href="https://cad-docs.caspertheghost.me/docs/steam-integration/steam-authentication"
+          href="https://docs.snailycad.org/docs/steam-integration/steam-authentication"
         >
           Click here for Documentation
         </a>
@@ -227,6 +227,16 @@ const FEATURES_LIST: Record<Feature, FeatureItem> = {
     name: "Calls 911 Approval",
     description:
       "When a citizen creates a 911 call and there are active dispatchers, this will require dispatch to approve the call before active units can view the call.",
+  },
+  FORCE_DISCORD_AUTH: {
+    name: "Force Discord Auth",
+    description:
+      "When enabled, this will require any user to have their Discord account connected to their CAD account before using the CAD.",
+  },
+  FORCE_STEAM_AUTH: {
+    name: "Force Steam Auth",
+    description:
+      "When enabled, this will require any user to have their Steam account connected to their CAD account before using the CAD.",
   },
 };
 
@@ -306,6 +316,7 @@ export function CADFeaturesTab() {
                     <Toggle
                       value={
                         values.features[key]?.isEnabled ??
+                        // @ts-expect-error - this is fine
                         DEFAULT_DISABLED_FEATURES[key]?.isEnabled ??
                         true
                       }
