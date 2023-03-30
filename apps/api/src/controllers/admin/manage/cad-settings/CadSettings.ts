@@ -9,13 +9,13 @@ import { Controller } from "@tsed/di";
 import { BodyParams, Context, QueryParams } from "@tsed/platform-params";
 import { ContentType, Delete, Get, Put } from "@tsed/schema";
 import { prisma } from "lib/data/prisma";
-import { CAD_SELECT, IsAuth, setDiscordAuth } from "middlewares/is-auth";
+import { CAD_SELECT, IsAuth, setCADFeatures } from "middlewares/is-auth";
 import { BadRequest } from "@tsed/exceptions";
 import { Req, Res, UseBefore } from "@tsed/common";
 import { Socket } from "services/socket-service";
 import { nanoid } from "nanoid";
 import { validateSchema } from "lib/data/validate-schema";
-import { ApiToken, cad, CadFeature, Feature, JailTimeScale, Prisma, Rank } from "@prisma/client";
+import { ApiToken, cad, Feature, JailTimeScale, Prisma, Rank } from "@prisma/client";
 import { getCADVersion } from "@snailycad/utils/version";
 import { getSessionUser, userProperties } from "lib/auth/getSessionUser";
 import type * as APITypes from "@snailycad/types/api";
@@ -26,6 +26,7 @@ import {
   parseAuditLogs,
 } from "@snailycad/audit-logger/server";
 import type { MiscCadSettings } from "@snailycad/types";
+import { createFeaturesObject } from "middlewares/is-enabled";
 
 @Controller("/admin/manage/cad-settings")
 @ContentType("application/json")
@@ -51,7 +52,7 @@ export class CADSettingsController {
       user?.rank === Rank.OWNER ? cad?.registrationCode : !!cad?.registrationCode;
 
     return {
-      ...setDiscordAuth(cad as unknown as cad),
+      ...setCADFeatures(cad),
       registrationCode,
       version,
     } as APITypes.GetCADSettingsData;
@@ -130,12 +131,16 @@ export class CADSettingsController {
     this.socket.emitUpdateRoleplayStopped(data.roleplayEnabled);
 
     await createAuditLogEntry({
-      action: { type: AuditLogActionType.CadSettingsUpdate, new: updated, previous: _cad! },
+      action: {
+        type: AuditLogActionType.CadSettingsUpdate,
+        new: setCADFeatures(updated),
+        previous: setCADFeatures(_cad) as any,
+      },
       prisma,
       executorId: sessionUserId,
     });
 
-    return updated;
+    return setCADFeatures(updated);
   }
 
   @Put("/features")
@@ -145,7 +150,7 @@ export class CADSettingsController {
     permissions: [Permissions.ManageCADSettings],
   })
   async updateCadFeatures(
-    @Context("cad") cad: cad & { features: CadFeature[] },
+    @Context("cad") cad: cad & { features?: Record<Feature, boolean> },
     @Context("sessionUserId") sessionUserId: string,
     @BodyParams() body: unknown,
   ): Promise<APITypes.PutCADFeaturesData> {
@@ -170,20 +175,20 @@ export class CADSettingsController {
       include: { features: true, miscCadSettings: true, apiToken: true },
     });
 
-    const previousEnabledFeatures = cad.features.filter((f) => f.isEnabled);
-    const newEnabledFeatures = updated.features.filter((f) => f.isEnabled);
+    const previousEnabledFeatures = cad.features;
+    const newEnabledFeatures = createFeaturesObject(updated.features);
 
     await createAuditLogEntry({
       action: {
         type: AuditLogActionType.CADFeaturesUpdate,
-        new: newEnabledFeatures.map((feature) => feature.feature),
-        previous: previousEnabledFeatures.map((feature) => feature.feature),
+        new: newEnabledFeatures,
+        previous: previousEnabledFeatures!,
       },
       prisma,
       executorId: sessionUserId,
     });
 
-    return updated;
+    return setCADFeatures(updated);
   }
 
   @Put("/misc")
