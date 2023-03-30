@@ -2,13 +2,12 @@ import * as React from "react";
 import { Form, Formik, FormikHelpers } from "formik";
 import { useTranslations } from "use-intl";
 
-import { Textarea, Loader, Input, Button } from "@snailycad/ui";
+import { Textarea, Loader, Input, Button, TabsContent } from "@snailycad/ui";
 import { useAuth } from "context/AuthContext";
 import useFetch from "lib/useFetch";
 import { JailTimeScale, MiscCadSettings } from "@snailycad/types";
 import { ImageSelectInput, validateFile } from "components/form/inputs/ImageSelectInput";
 import { SettingsFormField } from "components/form/SettingsFormField";
-import { TabsContent } from "components/shared/TabList";
 import { SettingsTabs } from "src/pages/admin/manage/cad-settings";
 import { Select } from "components/form/Select";
 import { toastMessage } from "lib/toastMessage";
@@ -17,8 +16,6 @@ import { useFeatureEnabled } from "hooks/useFeatureEnabled";
 import { InactivityTimeoutSection } from "./misc-features/inactivity-timeout-section";
 import { LicenseNumbersSection } from "./misc-features/license-number-section";
 import { TemplateSection } from "./misc-features/template-section";
-import Link from "next/link";
-import { BoxArrowUpRight } from "react-bootstrap-icons";
 
 export function MiscFeatures() {
   const [headerId, setHeaderId] = React.useState<(File | string) | null>(null);
@@ -182,32 +179,6 @@ export function MiscFeatures() {
                   name="cadOGDescription"
                   value={values.cadOGDescription}
                   onChange={handleChange}
-                />
-              </SettingsFormField>
-
-              <SettingsFormField
-                description={
-                  <span>
-                    This URL will communicate to the live_map resource in your FiveM server.{" "}
-                    <Link
-                      className="mt-1 underline inline-flex items-center gap-1 text-neutral-700 dark:text-gray-200"
-                      target="_blank"
-                      href="https://docs.snailycad.org/docs/fivem-integrations/live-map"
-                    >
-                      Learn more
-                      <BoxArrowUpRight className="inline-block" />
-                    </Link>
-                  </span>
-                }
-                errorMessage={errors.liveMapURL}
-                label="Live Map URL"
-              >
-                <Input
-                  type="url"
-                  name="liveMapURL"
-                  value={values.liveMapURL}
-                  onChange={handleChange}
-                  placeholder="http://my-host:my-port"
                 />
               </SettingsFormField>
             </section>

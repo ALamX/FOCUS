@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Select, SelectValue } from "components/form/Select";
-import { Button, Loader } from "@snailycad/ui";
-import { TabsContent } from "components/shared/TabList";
+import { Button, Loader, TabsContent } from "@snailycad/ui";
 import { Form, Formik, useFormikContext } from "formik";
 import useFetch from "lib/useFetch";
 import { useTranslations } from "next-intl";
@@ -14,6 +13,8 @@ import { formatPermissionName } from "../users/modals/manage-permissions-modal";
 import { SettingsTabs } from "src/pages/admin/manage/cad-settings";
 import { toastMessage } from "lib/toastMessage";
 import type { GetCADDiscordRolesData, PostCADDiscordRolesData } from "@snailycad/types/api";
+import Link from "next/link";
+import { BoxArrowUpRight } from "react-bootstrap-icons";
 
 function makeRoleValues(roles: DiscordRole[] | undefined) {
   if (!roles) return [];
@@ -42,6 +43,7 @@ export function DiscordRolesTab() {
   }, []); // eslint-disable-line
 
   const INITIAL_VALUES = {
+    adminRoles: makeRoleValues(discordRoles.adminRoles),
     leoRoles: makeRoleValues(discordRoles.leoRoles),
     emsFdRoles: makeRoleValues(discordRoles.emsFdRoles),
     dispatchRoles: makeRoleValues(discordRoles.dispatchRoles),
@@ -87,6 +89,7 @@ export function DiscordRolesTab() {
       method: "POST",
       data: {
         ...values,
+        adminRoles: toValue(values.adminRoles),
         leoRoles: toValue(values.leoRoles),
         emsFdRoles: toValue(values.emsFdRoles),
         dispatchRoles: toValue(values.dispatchRoles),
@@ -129,10 +132,19 @@ export function DiscordRolesTab() {
         <p className="my-3 text-neutral-700 dark:text-gray-400 max-w-2xl">
           {t("discordRolesInfo")}
         </p>
+
+        <Link
+          className="mt-1 underline flex items-center gap-1 text-blue-500"
+          target="_blank"
+          href="https://docs.snailycad.org/docs/discord-integration/discord-roles"
+        >
+          {common("learnMore")}
+          <BoxArrowUpRight className="inline-block" />
+        </Link>
       </header>
 
       {fetchError ? (
-        <div role="alert" className="p-2 px-4 my-2 mb-5 text-black rounded-md shadow bg-red-400">
+        <div role="alert" className="p-2 px-4 my-4 mb-5 text-black rounded-md shadow bg-red-400">
           <p>{tErrors(fetchError)}</p>
         </div>
       ) : null}
@@ -143,21 +155,24 @@ export function DiscordRolesTab() {
             <SettingsFormField
               action="input"
               description={t("adminRoleInfo")}
-              errorMessage={errors.adminRoleId}
+              errorMessage={errors.adminRoles}
               label={t("adminRole")}
             >
               <Select
+                disabled={!!fetchError}
                 isClearable
+                isMulti
                 values={roles.map((role) => ({
                   value: role.id,
                   label: role.name,
                 }))}
-                value={values.adminRoleId}
-                name="adminRoleId"
+                value={values.adminRoles}
+                name="adminRoles"
                 onChange={handleChange}
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="adminRolePermissions"
                 permissions={defaultPermissions.allDefaultAdminPermissions}
               />
@@ -170,6 +185,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -181,6 +197,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="leoRolePermissions"
                 permissions={defaultPermissions.defaultLeoPermissions}
               />
@@ -193,6 +210,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -204,6 +222,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="leoSupervisorRolePermissions"
                 permissions={defaultPermissions.defaultLeoPermissions}
               />
@@ -216,6 +235,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -227,6 +247,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="emsFdRolePermissions"
                 permissions={defaultPermissions.defaultEmsFdPermissions}
               />
@@ -239,6 +260,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -250,6 +272,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="dispatchRolePermissions"
                 permissions={defaultPermissions.defaultDispatchPermissions}
               />
@@ -262,6 +285,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -273,6 +297,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="towRolePermissions"
                 permissions={defaultPermissions.defaultTowPermissions}
               />
@@ -285,6 +310,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -296,6 +322,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="taxiRolePermissions"
                 permissions={defaultPermissions.defaultTaxiPermissions}
               />
@@ -308,6 +335,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 isMulti
                 values={roles.map((role) => ({
                   value: role.id,
@@ -319,6 +347,7 @@ export function DiscordRolesTab() {
               />
 
               <SelectPermissionsField
+                disabled={!!fetchError}
                 name="courthouseRolePermissions"
                 permissions={defaultPermissions.defaultCourthousePermissions}
               />
@@ -331,6 +360,7 @@ export function DiscordRolesTab() {
             >
               <Select
                 isClearable
+                disabled={!!fetchError}
                 values={roles.map((role) => ({
                   value: role.id,
                   label: role.name,
@@ -341,7 +371,11 @@ export function DiscordRolesTab() {
               />
             </SettingsFormField>
 
-            <Button className="flex items-center" type="submit" disabled={state === "loading"}>
+            <Button
+              className="flex items-center"
+              type="submit"
+              disabled={!!fetchError || state === "loading"}
+            >
               {state === "loading" ? <Loader className="mr-3 border-red-300" /> : null}
               {common("save")}
             </Button>
@@ -360,9 +394,11 @@ function makeValue(permissions: Permissions[] | undefined) {
 function SelectPermissionsField({
   name,
   permissions,
+  disabled,
 }: {
   name: string;
   permissions: Permissions[];
+  disabled: boolean;
 }) {
   const { values, errors, handleChange } = useFormikContext<any>();
   const t = useTranslations("DiscordRolesTab");
@@ -370,6 +406,7 @@ function SelectPermissionsField({
   return (
     <FormField errorMessage={errors[name] as string} className="mt-2" label={t("permissions")}>
       <Select
+        disabled={disabled}
         closeMenuOnSelect={false}
         name={name}
         onChange={handleChange}

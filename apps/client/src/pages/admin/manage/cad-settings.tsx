@@ -3,7 +3,7 @@ import { useTranslations } from "use-intl";
 import type { GetServerSideProps } from "next";
 import { getSessionUser } from "lib/auth";
 import { getTranslations } from "lib/getTranslation";
-import { TabList } from "components/shared/TabList";
+import { TabList } from "@snailycad/ui";
 import { requestAll } from "lib/utils";
 import { Title } from "components/shared/Title";
 import dynamic from "next/dynamic";
@@ -19,10 +19,10 @@ const Tabs = {
     async () => (await import("components/admin/manage/cad-settings/MiscFeatures")).MiscFeatures,
     { ssr: false },
   ),
-  AutoSetUserPropertiesTab: dynamic(
+  DefaultPermissionsTab: dynamic(
     async () =>
-      (await import("components/admin/manage/cad-settings/AutoSetUserPropertiesTab"))
-        .AutoSetUserPropertiesTab,
+      (await import("components/admin/manage/cad-settings/default-permissions-tab"))
+        .DefaultPermissionsTab,
     { ssr: false },
   ),
   ApiTokenTab: dynamic(
@@ -36,8 +36,18 @@ const Tabs = {
   ),
   DiscordWebhooksTab: dynamic(
     async () =>
-      (await import("components/admin/manage/cad-settings/webhooks/discord-webhooks-tab"))
+      (await import("components/admin/manage/cad-settings/discord-webhooks/discord-webhooks-tab"))
         .DiscordWebhooksTab,
+    { ssr: false },
+  ),
+  RawWebhooksTab: dynamic(
+    async () =>
+      (await import("components/admin/manage/cad-settings/webhooks/raw-webhooks-tab"))
+        .RawWebhooksTab,
+    { ssr: false },
+  ),
+  LiveMapTab: dynamic(
+    async () => (await import("components/admin/manage/cad-settings/live-map-tab")).LiveMapTab,
     { ssr: false },
   ),
 };
@@ -46,10 +56,12 @@ export enum SettingsTabs {
   GeneralSettings = "GENERAL_SETTINGS",
   Features = "FEATURES",
   MiscSettings = "MISC_SETTINGS",
-  AutoSetProperties = "AUTO_SET_PROPERTIES",
+  DefaultPermissions = "DEFAULT_PERMISSIONS",
+  LiveMap = "LIVE_MAP",
   APIToken = "API_TOKEN",
   DiscordRoles = "DISCORD_ROLES",
   DiscordWebhooks = "DISCORD_WEBHOOKS",
+  RawWebhooks = "RAW_WEBHOOKS",
 }
 
 export default function CadSettings() {
@@ -59,10 +71,12 @@ export default function CadSettings() {
     { name: t(SettingsTabs.GeneralSettings), value: SettingsTabs.GeneralSettings },
     { name: t(SettingsTabs.Features), value: SettingsTabs.Features },
     { name: t(SettingsTabs.MiscSettings), value: SettingsTabs.MiscSettings },
-    { name: t(SettingsTabs.AutoSetProperties), value: SettingsTabs.AutoSetProperties },
+    { name: t(SettingsTabs.DefaultPermissions), value: SettingsTabs.DefaultPermissions },
+    { name: t(SettingsTabs.LiveMap), value: SettingsTabs.LiveMap },
     { name: t(SettingsTabs.APIToken), value: SettingsTabs.APIToken },
     { name: t(SettingsTabs.DiscordRoles), value: SettingsTabs.DiscordRoles },
     { name: t(SettingsTabs.DiscordWebhooks), value: SettingsTabs.DiscordWebhooks },
+    { name: t(SettingsTabs.RawWebhooks), value: SettingsTabs.RawWebhooks },
   ];
 
   return (
@@ -74,10 +88,12 @@ export default function CadSettings() {
 
         <Tabs.CADFeaturesTab />
         <Tabs.MiscFeatures />
-        <Tabs.AutoSetUserPropertiesTab />
+        <Tabs.DefaultPermissionsTab />
+        <Tabs.LiveMapTab />
         <Tabs.ApiTokenTab />
         <Tabs.DiscordRolesTab />
         <Tabs.DiscordWebhooksTab />
+        <Tabs.RawWebhooksTab />
       </TabList>
     </AdminLayout>
   );

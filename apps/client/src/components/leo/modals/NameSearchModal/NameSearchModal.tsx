@@ -26,12 +26,12 @@ import { ManageCustomFieldsModal } from "./ManageCustomFieldsModal";
 import { CustomFieldsArea } from "../CustomFieldsArea";
 import { useBolos } from "hooks/realtime/useBolos";
 import type { PostLeoSearchCitizenData, PutSearchActionsLicensesData } from "@snailycad/types/api";
-import Image from "next/image";
 import { NameSearchBasicInformation } from "./sections/basic-information";
 import { NameSearchLicensesSection } from "./sections/licenses-section";
 import { NameSearchFooter } from "./sections/footer";
 import { shallow } from "zustand/shallow";
 import { SpeechAlert } from "./speech-alert";
+import { ImageWrapper } from "components/shared/image-wrapper";
 
 const VehicleSearchModal = dynamic(
   async () => (await import("components/leo/modals/VehicleSearchModal")).VehicleSearchModal,
@@ -221,7 +221,8 @@ export function NameSearchModal() {
                   <Item key={item.id} textValue={name}>
                     <div className="flex items-center">
                       {item.imageId ? (
-                        <Image
+                        <ImageWrapper
+                          quality={70}
                           alt={`${item.name} ${item.surname}`}
                           className="rounded-md w-[30px] h-[30px] object-cover mr-2"
                           draggable={false}
@@ -256,7 +257,8 @@ export function NameSearchModal() {
                     <div className="flex items-center">
                       <div className="mr-2 min-w-[50px]">
                         {result.imageId ? (
-                          <Image
+                          <ImageWrapper
+                            quality={80}
                             placeholder={result.imageBlurData ? "blur" : "empty"}
                             blurDataURL={result.imageBlurData ?? undefined}
                             className="rounded-md w-[50px] h-[50px] object-cover"
@@ -359,7 +361,8 @@ export function NameSearchModal() {
                           onClick={() => openModal(ModalIds.CitizenImage)}
                           className="cursor-pointer"
                         >
-                          <Image
+                          <ImageWrapper
+                            quality={100}
                             placeholder={currentResult.imageBlurData ? "blur" : "empty"}
                             blurDataURL={currentResult.imageBlurData ?? undefined}
                             className="rounded-md w-[100px] h-[100px] object-cover"

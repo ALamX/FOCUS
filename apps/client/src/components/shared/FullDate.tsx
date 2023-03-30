@@ -1,24 +1,19 @@
-import { useMounted } from "@casper124578/useful";
-import { useIntl } from "use-intl";
+import { useFormatter } from "use-intl";
 import { HoverCardProps, HoverCard } from "./HoverCard";
 
 interface Props extends Omit<HoverCardProps, "trigger" | "children"> {
   children: Date | string | number;
   onlyDate?: boolean;
   isDateOfBirth?: boolean;
+  relative?: boolean;
 }
 
-export function FullDate({ children, onlyDate, isDateOfBirth, ...rest }: Props) {
-  const isMounted = useMounted();
-  const { formatDateTime } = useIntl();
+export function FullDate({ children, onlyDate, relative, isDateOfBirth, ...rest }: Props) {
+  const { dateTime, relativeTime } = useFormatter();
 
   const isCorrectDate = isValidDate(children);
   if (!isCorrectDate) {
     return <span>Invalid Date</span>;
-  }
-
-  if (!isMounted) {
-    return null;
   }
 
   let date = new Date(children).getTime();
@@ -26,21 +21,25 @@ export function FullDate({ children, onlyDate, isDateOfBirth, ...rest }: Props) 
     date = date + 5 * 60 * 60 * 1000;
   }
 
+  const relativeFormattedTime = relativeTime(date, new Date());
+  const formattedTime = dateTime(date, {
+    dateStyle: "medium",
+    timeStyle: onlyDate ? undefined : "medium",
+  });
+  const triggerFormattedTime = relative ? relativeFormattedTime : formattedTime;
+
   return (
     <HoverCard
       openDelay={100}
       trigger={
-        <span className="z-30">
-          {formatDateTime(date, {
-            dateStyle: "medium",
-            timeStyle: onlyDate ? undefined : "medium",
-          })}
+        <span suppressHydrationWarning className="z-30">
+          {triggerFormattedTime}
         </span>
       }
       {...rest}
     >
       <span className="font-semibold">
-        {formatDateTime(date, { dateStyle: "full", timeStyle: onlyDate ? undefined : "medium" })}
+        {dateTime(date, { dateStyle: "full", timeStyle: onlyDate ? undefined : "medium" })}
       </span>
     </HoverCard>
   );

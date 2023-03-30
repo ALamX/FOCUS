@@ -27,6 +27,11 @@ export const switchDivision: ModalButton = ({ DIVISIONS, unit }) => {
   };
 };
 
+export const selectDepartmentBtn: ModalButton = () => ({
+  modalId: ModalIds.SelectDepartment,
+  nameKey: ["Leo", "selectDepartment"],
+});
+
 export const nameSearchBtn: ModalButton = () => ({
   modalId: ModalIds.NameSearch,
   nameKey: ["Leo", "nameSearch"],
@@ -35,6 +40,12 @@ export const nameSearchBtn: ModalButton = () => ({
 export const plateSearchBtn: ModalButton = () => ({
   modalId: ModalIds.VehicleSearch,
   nameKey: ["Leo", "plateSearch"],
+});
+
+export const businessSearchBtn: ModalButton = ({ BUSINESS }) => ({
+  modalId: ModalIds.BusinessSearch,
+  nameKey: ["Leo", "businessSearch"],
+  isEnabled: BUSINESS,
 });
 
 export const weaponSearchBtn: ModalButton = ({ WEAPON_REGISTRATION }) => ({

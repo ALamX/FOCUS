@@ -13,10 +13,11 @@ import { Socket } from "services/socket-service";
 import { UsePermissions, Permissions } from "middlewares/use-permissions";
 import { officerOrDeputyToUnit } from "lib/leo/officerOrDeputyToUnit";
 import { findUnit } from "lib/leo/findUnit";
-import { getFirstOfficerFromActiveOfficer } from "lib/leo/utils";
+import { getFirstOfficerFromActiveOfficer, getInactivityFilter } from "lib/leo/utils";
 import type * as APITypes from "@snailycad/types/api";
 import { getNextIncidentId } from "lib/incidents/get-next-incident-id";
 import { assignUnitsInvolvedToIncident } from "lib/incidents/handle-involved-units";
+import { cad } from "@snailycad/types";
 
 export const assignedUnitsInclude = {
   include: {
@@ -68,14 +69,17 @@ export class IncidentController {
     fallback: (u) => u.isDispatch || u.isLeo,
   })
   async getAllIncidents(
+    @Context("cad") cad: cad,
     @QueryParams("activeType", String) activeType: ActiveTypes = "inactive",
     @QueryParams("skip", Number) skip = 0,
     @QueryParams("includeAll", Boolean) includeAll = false,
     @QueryParams("assignedUnit", String) assignedUnit?: string,
-  ): Promise<APITypes.GetIncidentsData> {
+  ): Promise<APITypes.GetIncidentsData<"leo">> {
+    const incidentInactivityFilter = getInactivityFilter(cad, "incidentInactivityTimeout");
+
     const isActiveObj =
       activeType === "active"
-        ? { isActive: true }
+        ? { isActive: true, ...incidentInactivityFilter?.filter }
         : activeType === "inactive"
         ? { isActive: false }
         : {};
@@ -98,7 +102,7 @@ export class IncidentController {
       prisma.leoIncident.findMany({
         where,
         include: incidentInclude,
-        orderBy: { caseNumber: "desc" },
+        orderBy: activeType === "active" ? { updatedAt: "desc" } : { caseNumber: "desc" },
         take: includeAll ? undefined : 25,
         skip: includeAll ? undefined : skip,
       }),
@@ -113,7 +117,9 @@ export class IncidentController {
     permissions: [Permissions.Dispatch, Permissions.ViewIncidents, Permissions.ManageIncidents],
     fallback: (u) => u.isDispatch || u.isLeo,
   })
-  async getIncidentById(@PathParams("id") id: string): Promise<APITypes.GetIncidentByIdData> {
+  async getIncidentById(
+    @PathParams("id") id: string,
+  ): Promise<APITypes.GetIncidentByIdData<"leo">> {
     const incident = await prisma.leoIncident.findUnique({
       where: { id },
       include: incidentInclude,
@@ -132,7 +138,7 @@ export class IncidentController {
     @BodyParams() body: unknown,
     @Context("cad") cad: { miscCadSettings: MiscCadSettings },
     @Context("activeOfficer") activeOfficer: (CombinedLeoUnit & { officers: Officer[] }) | Officer,
-  ): Promise<APITypes.PostIncidentsData> {
+  ): Promise<APITypes.PostIncidentsData<"leo">> {
     const data = validateSchema(LEO_INCIDENT_SCHEMA, body);
     const officer = getFirstOfficerFromActiveOfficer({ allowDispatch: true, activeOfficer });
     const maxAssignmentsToIncidents = cad.miscCadSettings.maxAssignmentsToIncidents ?? Infinity;
@@ -160,6 +166,7 @@ export class IncidentController {
         incident,
         maxAssignmentsToIncidents,
         unitIds,
+        type: "leo",
       });
     }
 
@@ -192,7 +199,7 @@ export class IncidentController {
     @PathParams("incidentId") incidentId: string,
     @BodyParams("unit") rawUnitId: string | null,
     @QueryParams("force", Boolean) force = false,
-  ): Promise<APITypes.PutAssignUnassignIncidentsData> {
+  ): Promise<APITypes.PutAssignUnassignIncidentsData<"leo">> {
     if (!rawUnitId) {
       throw new BadRequest("unitIsRequired");
     }
@@ -294,7 +301,7 @@ export class IncidentController {
     @BodyParams() body: unknown,
     @Context("cad") cad: { miscCadSettings: MiscCadSettings },
     @PathParams("id") incidentId: string,
-  ): Promise<APITypes.PutIncidentByIdData> {
+  ): Promise<APITypes.PutIncidentByIdData<"leo">> {
     const data = validateSchema(LEO_INCIDENT_SCHEMA, body);
     const maxAssignmentsToIncidents = cad.miscCadSettings.maxAssignmentsToIncidents ?? Infinity;
 
@@ -327,6 +334,7 @@ export class IncidentController {
         incident,
         maxAssignmentsToIncidents,
         unitIds,
+        type: "leo",
       });
     }
 

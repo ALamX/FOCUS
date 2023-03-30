@@ -17,7 +17,8 @@ import Head from "next/head";
 import { usePermission } from "hooks/usePermission";
 import { defaultPermissions, Permissions } from "@snailycad/permissions";
 import { Rank } from "@snailycad/types";
-import Image from "next/image";
+import { ImageWrapper } from "components/shared/image-wrapper";
+import { AdminLink } from "./dropdowns/admin-link";
 
 interface Props {
   maxWidth?: string;
@@ -74,7 +75,8 @@ export function Nav({ maxWidth }: Props) {
                       <link rel="shortcut icon" href={url} />
                       <meta name="og:image" content={url} />
                     </Head>
-                    <Image
+                    <ImageWrapper
+                      quality={80}
                       alt={cad?.name || "SnailyCAD"}
                       width={30}
                       height={30}
@@ -142,16 +144,7 @@ export function Nav({ maxWidth }: Props) {
                 ],
                 user?.rank !== Rank.USER,
               ) ? (
-                <Link
-                  role="listitem"
-                  href="/admin"
-                  className={classNames(
-                    "p-1 nav:px-2 text-white dark:text-white transition duration-300",
-                    isActive("/admin") && "font-semibold",
-                  )}
-                >
-                  {t("admin")}
-                </Link>
+                <AdminLink />
               ) : null}
             </div>
           </div>

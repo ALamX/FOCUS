@@ -15,6 +15,10 @@ export const CAD_SETTINGS_SCHEMA = z.object({
   image: z.any().nullish(),
 });
 
+export const LIVE_MAP_SETTINGS = z.object({
+  liveMapURL: z.string().nullable(),
+});
+
 export const API_TOKEN_SCHEMA = z.object({
   enabled: z.boolean(),
   token: z.string().nullish(),
@@ -34,7 +38,6 @@ export const CAD_MISC_SETTINGS_SCHEMA = z.object({
   pairedUnitTemplate: z.string().max(255).nullable(),
   callsignTemplate: z.string(),
   caseNumberTemplate: z.string().nullish(),
-  liveMapURL: z.string().nullable(),
   maxOfficersPerUser: z.number().nullable(),
   authScreenBgImageId: z.any().or(z.string()).optional(),
   authScreenHeaderImageId: z.any().or(z.string()).optional(),
@@ -57,6 +60,7 @@ export const CAD_MISC_SETTINGS_SCHEMA = z.object({
 });
 
 export const DISCORD_SETTINGS_SCHEMA = z.object({
+  adminRoles: z.array(z.any()).nullish(),
   leoRoles: z.array(z.any()).nullish(),
   emsFdRoles: z.array(z.any()).nullish(),
   leoSupervisorRoles: z.array(z.any()).nullish(),
@@ -87,6 +91,10 @@ export const DISCORD_WEBHOOK = z.object({
   type: z.string().regex(DISCORD_WEBHOOK_TYPE),
 });
 
+export const RAW_WEBHOOK = DISCORD_WEBHOOK.omit({ extraMessage: true }).extend({
+  url: z.string().nullish(),
+});
+
 export const DISCORD_WEBHOOKS_SCHEMA = z.object({
   call911Webhook: DISCORD_WEBHOOK,
   statusesWebhook: DISCORD_WEBHOOK,
@@ -97,10 +105,18 @@ export const DISCORD_WEBHOOKS_SCHEMA = z.object({
   warrantsWebhook: DISCORD_WEBHOOK,
 });
 
-export const CAD_AUTO_SET_PROPERTIES = z.object({
-  leo: z.boolean().nullable(),
-  dispatch: z.boolean().nullable(),
-  emsFd: z.boolean().nullable(),
+export const RAW_WEBHOOKS_SCHEMA = z.object({
+  call911Webhook: RAW_WEBHOOK,
+  statusesWebhook: RAW_WEBHOOK,
+  panicButtonWebhook: RAW_WEBHOOK,
+  boloWebhook: RAW_WEBHOOK,
+  vehicleImpoundedWebhook: RAW_WEBHOOK,
+  citizenRecordsWebhook: RAW_WEBHOOK,
+  warrantsWebhook: RAW_WEBHOOK,
+});
+
+export const UPDATE_DEFAULT_PERMISSIONS_SCHEMA = z.object({
+  defaultPermissions: z.array(z.string()),
 });
 
 export const DISABLED_FEATURES_SCHEMA = z.object({

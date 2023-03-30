@@ -112,7 +112,7 @@
     "EDIT": "Edit Division"
   },
   "DRIVERSLICENSE_CATEGORY": {
-    "MANAGE": "Manage DL Categories",
+    "MANAGE": "Manage License Categories",
     "ADD": "Add Category",
     "DELETE": "Delete Category",
     "EDIT": "Edit Category"
@@ -164,5 +164,11 @@
     "ADD": "Add address flag",
     "DELETE": "Delete address flag",
     "EDIT": "Edit address flag"
+  },
+  "VEHICLE_TRIM_LEVEL": {
+    "MANAGE": "Manage vehicle trim levels",
+    "ADD": "Add trim level",
+    "DELETE": "Delete trim level",
+    "EDIT": "Edit trim level"
   }
 }

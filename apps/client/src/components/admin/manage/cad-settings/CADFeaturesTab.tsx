@@ -5,9 +5,8 @@ import { useAuth } from "context/AuthContext";
 import useFetch from "lib/useFetch";
 import { Toggle } from "components/form/Toggle";
 import { CadFeature, Feature } from "@snailycad/types";
-import { Button, Loader, TextField } from "@snailycad/ui";
+import { Button, Loader, TextField, TabsContent } from "@snailycad/ui";
 import { SettingsFormField } from "components/form/SettingsFormField";
-import { TabsContent } from "components/shared/TabList";
 import { SettingsTabs } from "src/pages/admin/manage/cad-settings";
 import { toastMessage } from "lib/toastMessage";
 import { DEFAULT_DISABLED_FEATURES } from "hooks/useFeatureEnabled";
@@ -15,7 +14,22 @@ import type { PutCADFeaturesData } from "@snailycad/types/api";
 import Link from "next/link";
 import { BoxArrowUpRight } from "react-bootstrap-icons";
 
-const featuresWithURL: string[] = [Feature.BLEETER, Feature.DISCORD_AUTH, Feature.STEAM_OAUTH];
+const featuresWithURL: string[] = [
+  Feature.BLEETER,
+  Feature.DISCORD_AUTH,
+  Feature.STEAM_OAUTH,
+  Feature.FORCE_DISCORD_AUTH,
+  Feature.FORCE_STEAM_AUTH,
+  Feature.DMV,
+  Feature.BUREAU_OF_FIREARMS,
+  Feature.COURTHOUSE,
+  Feature.COURTHOUSE_POSTS,
+  Feature.TONES,
+  Feature.ACTIVE_WARRANTS,
+  Feature.WARRANT_STATUS_APPROVAL,
+  Feature.ACTIVE_INCIDENTS,
+  Feature.LICENSE_EXAMS,
+];
 
 export function CADFeaturesTab() {
   const [search, setSearch] = React.useState("");

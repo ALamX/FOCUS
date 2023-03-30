@@ -3,10 +3,9 @@ import type { Unit } from "src/pages/admin/manage/units";
 import useFetch from "lib/useFetch";
 import { formatUnitDivisions, makeUnitName, formatOfficerDepartment } from "lib/utils";
 import { useTranslations } from "use-intl";
-import { Button, buttonVariants } from "@snailycad/ui";
+import { Button, buttonVariants, TabsContent } from "@snailycad/ui";
 import { useGenerateCallsign } from "hooks/useGenerateCallsign";
 import { Table, useAsyncTable, useTableState } from "components/shared/Table";
-import { TabsContent } from "components/shared/TabList";
 import { useModal } from "state/modalState";
 import { ModalIds } from "types/ModalIds";
 import { AlertDeclineOfficerModal } from "../AlertDeclineOfficerModal";
@@ -84,7 +83,7 @@ export function DepartmentWhitelistingTab({ pendingUnits }: Props) {
         totalCount={pendingUnits.totalCount}
       />
 
-      {asyncTable.items.length <= 0 ? (
+      {asyncTable.noItemsAvailable ? (
         <p className="mt-2">{t("Management.noPendingOfficers")}</p>
       ) : (
         <Table

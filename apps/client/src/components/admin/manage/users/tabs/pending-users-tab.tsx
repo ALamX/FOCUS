@@ -1,11 +1,10 @@
 import * as React from "react";
 import { useTranslations } from "use-intl";
 import type { User } from "@snailycad/types";
-import { TabsContent } from "components/shared/TabList";
 import { Table, useTableState } from "components/shared/Table";
 import useFetch from "lib/useFetch";
 import { useAsyncTable } from "hooks/shared/table/use-async-table";
-import { Button } from "@snailycad/ui";
+import { Button, TabsContent } from "@snailycad/ui";
 import type { GetManageUsersData, PostManageUserAcceptDeclineData } from "@snailycad/types/api";
 import { SearchArea } from "components/shared/search/search-area";
 import { useRouter } from "next/router";
@@ -50,7 +49,7 @@ export function PendingUsersTab(props: GetManageUsersData) {
         search={{ search, setSearch }}
       />
 
-      {asyncTable.items.length <= 0 ? (
+      {asyncTable.noItemsAvailable ? (
         <p>There are no users pending access.</p>
       ) : (
         <Table

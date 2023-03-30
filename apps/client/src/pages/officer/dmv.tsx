@@ -13,6 +13,7 @@ import { Permissions } from "hooks/usePermission";
 import useFetch from "lib/useFetch";
 import { Status } from "components/shared/Status";
 import type { GetDMVPendingVehiclesData, PostDMVVehiclesData } from "@snailycad/types/api";
+import { useInvalidateQuery } from "hooks/use-invalidate-query";
 
 interface Props {
   data: GetDMVPendingVehiclesData;
@@ -23,6 +24,7 @@ export default function Dmv({ data }: Props) {
   const vT = useTranslations("Vehicles");
   const common = useTranslations("Common");
   const { state, execute } = useFetch();
+  const { invalidateQuery } = useInvalidateQuery(["officer", "notifications"]);
 
   const asyncTable = useAsyncTable({
     fetchOptions: {
@@ -45,6 +47,7 @@ export default function Dmv({ data }: Props) {
     });
 
     if (json) {
+      await invalidateQuery();
       asyncTable.update(id, json);
     }
   }
@@ -59,7 +62,7 @@ export default function Dmv({ data }: Props) {
     >
       <Title>{t("dmv")}</Title>
 
-      {asyncTable.items.length <= 0 ? (
+      {asyncTable.noItemsAvailable ? (
         <p className="mt-5">{t("noVehiclesPendingApprovalInDmv")}</p>
       ) : (
         <Table
@@ -73,11 +76,11 @@ export default function Dmv({ data }: Props) {
               citizen: (
                 <span className="capitalize">
                   {vehicle.citizen
-                    ? `${vehicle.citizen.name} ${vehicle.citizen.surname}}`
+                    ? `${vehicle.citizen.name} ${vehicle.citizen.surname}`
                     : common("unknown")}
                 </span>
               ),
-              dmvStatus: <Status>{vehicle.dmvStatus}</Status>,
+              dmvStatus: <Status fallback="—">{vehicle.dmvStatus}</Status>,
               createdAt: <FullDate>{vehicle.createdAt}</FullDate>,
               plate: vehicle.plate,
               model: vehicle.model.value.value,

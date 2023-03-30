@@ -3,8 +3,9 @@ import {
   CREATE_TICKET_SCHEMA,
   CREATE_WARRANT_SCHEMA,
   UPDATE_WARRANT_SCHEMA,
+  CREATE_TICKET_SCHEMA_BUSINESS,
 } from "@snailycad/schemas";
-import { BodyParams, Context, PathParams } from "@tsed/platform-params";
+import { QueryParams, BodyParams, Context, PathParams } from "@tsed/platform-params";
 import { BadRequest, NotFound } from "@tsed/exceptions";
 import { prisma } from "lib/data/prisma";
 import { UseBeforeEach, UseBefore } from "@tsed/platform-middlewares";
@@ -23,12 +24,13 @@ import {
   CombinedLeoUnit,
   Officer,
   User,
+  Business,
 } from "@prisma/client";
 import { validateSchema } from "lib/data/validate-schema";
 import { combinedUnitProperties, leoProperties } from "lib/leo/activeOfficer";
 import { UsePermissions, Permissions } from "middlewares/use-permissions";
 import { isFeatureEnabled } from "lib/cad";
-import { sendDiscordWebhook } from "lib/discord/webhooks";
+import { sendDiscordWebhook, sendRawWebhook } from "lib/discord/webhooks";
 import { getFirstOfficerFromActiveOfficer, getInactivityFilter } from "lib/leo/utils";
 import type * as APITypes from "@snailycad/types/api";
 import { officerOrDeputyToUnit } from "lib/leo/officerOrDeputyToUnit";
@@ -57,19 +59,37 @@ export class RecordsController {
   @Get("/active-warrants")
   @Description("Get all active warrants (ACTIVE_WARRANTS must be enabled)")
   @IsFeatureEnabled({ feature: Feature.ACTIVE_WARRANTS })
-  async getActiveWarrants(@Context("cad") cad: cad) {
+  async getActiveWarrants(
+    @Context("cad") cad: cad,
+    @QueryParams("skip", Number) skip = 0,
+    @QueryParams("includeAll", Boolean) includeAll = false,
+  ): Promise<APITypes.GetActiveWarrantsData> {
     const inactivityFilter = getInactivityFilter(cad, "activeWarrantsInactivityTimeout");
 
-    const activeWarrants = await prisma.warrant.findMany({
-      orderBy: { updatedAt: "desc" },
-      where: { status: "ACTIVE", approvalStatus: "ACCEPTED", ...(inactivityFilter?.filter ?? {}) },
-      include: {
-        citizen: true,
-        assignedOfficers: { include: assignedOfficersInclude },
-      },
-    });
+    const where = {
+      status: "ACTIVE",
+      approvalStatus: "ACCEPTED",
+      ...(inactivityFilter?.filter ?? {}),
+    } as const;
 
-    return activeWarrants.map((warrant) => officerOrDeputyToUnit(warrant));
+    const [totalCount, activeWarrants] = await prisma.$transaction([
+      prisma.warrant.count({ where }),
+      prisma.warrant.findMany({
+        orderBy: { updatedAt: "desc" },
+        where,
+        take: includeAll ? undefined : 12,
+        skip: includeAll ? undefined : skip,
+        include: {
+          citizen: true,
+          assignedOfficers: { include: assignedOfficersInclude },
+        },
+      }),
+    ]);
+
+    return {
+      totalCount,
+      activeWarrants: activeWarrants.map((warrant) => officerOrDeputyToUnit(warrant)),
+    };
   }
 
   @UseBefore(ActiveOfficer)
@@ -212,7 +232,7 @@ export class RecordsController {
 
   @UseBefore(ActiveOfficer)
   @Post("/")
-  @Description("Create a new ticket, written warning or arrest report")
+  @Description("Create a new ticket, written warning or arrest report to a citizen")
   @UsePermissions({
     fallback: (u) => u.isLeo,
     permissions: [Permissions.Leo],
@@ -222,7 +242,7 @@ export class RecordsController {
     @Context("cad") cad: { features?: Record<Feature, boolean> },
     @Context("activeOfficer") activeOfficer: (CombinedLeoUnit & { officers: Officer[] }) | Officer,
   ): Promise<APITypes.PostRecordsData> {
-    const data = validateSchema(CREATE_TICKET_SCHEMA, body);
+    const data = validateSchema(CREATE_TICKET_SCHEMA.or(CREATE_TICKET_SCHEMA_BUSINESS), body);
     const officer = getFirstOfficerFromActiveOfficer({ activeOfficer, allowDispatch: true });
 
     const recordItem = await upsertRecord({
@@ -233,10 +253,14 @@ export class RecordsController {
     });
 
     await prisma.recordLog.create({
-      data: { citizenId: recordItem.citizenId, recordId: recordItem.id },
+      data: {
+        citizenId: recordItem.citizenId ?? undefined,
+        businessId: recordItem.businessId ?? undefined,
+        recordId: recordItem.id,
+      },
     });
 
-    await this.handleDiscordWebhook(recordItem);
+    await this.handleDiscordWebhook(recordItem as any);
 
     return recordItem;
   }
@@ -253,7 +277,7 @@ export class RecordsController {
     @BodyParams() body: unknown,
     @PathParams("id") recordId: string,
   ): Promise<APITypes.PutRecordsByIdData> {
-    const data = validateSchema(CREATE_TICKET_SCHEMA, body);
+    const data = validateSchema(CREATE_TICKET_SCHEMA.or(CREATE_TICKET_SCHEMA_BUSINESS), body);
 
     const recordItem = await upsertRecord({
       data,
@@ -306,7 +330,8 @@ export class RecordsController {
 
   private async handleDiscordWebhook(
     ticket: ((CADRecord & { violations: Violation[] }) | Warrant) & {
-      citizen: Citizen & { user?: Pick<User, "discordId"> | null };
+      citizen?: Citizen & { user?: Pick<User, "discordId"> | null };
+      business?: Business;
     },
     type: DiscordWebhookType = DiscordWebhookType.CITIZEN_RECORD,
     locale?: string | null,
@@ -316,7 +341,11 @@ export class RecordsController {
       await sendDiscordWebhook({
         type,
         data,
-        extraMessageData: { userDiscordId: ticket.citizen.user?.discordId },
+        extraMessageData: { userDiscordId: ticket.citizen?.user?.discordId },
+      });
+      await sendRawWebhook({
+        type: DiscordWebhookType.CITIZEN_RECORD,
+        data: ticket,
       });
     } catch (error) {
       console.error("Could not send Discord webhook.", error);
@@ -325,13 +354,21 @@ export class RecordsController {
 }
 
 async function createWebhookData(
-  data: ((CADRecord & { violations: Violation[] }) | Warrant) & { citizen: Citizen },
+  data: ((CADRecord & { violations: Violation[] }) | Warrant) & {
+    citizen?: Citizen & { user?: Pick<User, "discordId"> | null };
+    business?: Business;
+  },
   locale?: string | null,
 ) {
   const t = await getTranslator({ type: "webhooks", locale, namespace: "Records" });
 
   const isWarrant = !("notes" in data);
-  const citizen = `${data.citizen.name} ${data.citizen.surname}`;
+  const citizen = data.citizen
+    ? `${data.citizen.name} ${data.citizen.surname}`
+    : data.business
+    ? data.business.name
+    : "Unknown";
+
   const description = !isWarrant ? data.notes : "";
 
   const totalJailTime = getTotal("jailTime");

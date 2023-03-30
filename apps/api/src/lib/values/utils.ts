@@ -51,10 +51,11 @@ export const permissionsForRouteType: Record<ValueType, Permissions[]> = {
   WEAPON: [Permissions.ManageValueWeapon],
   QUALIFICATION: [Permissions.ManageValueQualification],
   CALL_TYPE: [Permissions.ManageValueCallType],
+  VEHICLE_TRIM_LEVEL: [Permissions.ManageValueVehicleTrimLevel],
 };
 
 export function getTypeFromPath(path: string & {}) {
-  return path.replace("-", "_").toUpperCase() as ValueType;
+  return path.replace(/-/g, "_").toUpperCase() as ValueType;
 }
 
 export function getPermissionsForValuesRequest(request: Req) {
@@ -64,8 +65,8 @@ export function getPermissionsForValuesRequest(request: Req) {
     throw new BadRequest("Must specify `params.path`");
   }
 
-  const type = getTypeFromPath(path) as ValueType | "all";
-  if (type === "all") {
+  const type = getTypeFromPath(path) as ValueType | "ALL";
+  if (type === "ALL") {
     return {
       permissions: Object.values(permissionsForRouteType).flat(1),
       fallback: (u: User) => u.rank !== Rank.USER,

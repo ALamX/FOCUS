@@ -8,7 +8,6 @@ import { BadRequest, Forbidden, NotFound } from "@tsed/exceptions";
 import { CREATE_CITIZEN_SCHEMA, CREATE_OFFICER_SCHEMA } from "@snailycad/schemas";
 import fs from "node:fs/promises";
 import { AllowedFileExtension, allowedFileExtensions } from "@snailycad/config";
-import { leoProperties } from "lib/leo/activeOfficer";
 import { generateString } from "utils/generate-string";
 import { User, ValueType, Feature, cad, MiscCadSettings, Prisma } from "@prisma/client";
 import { ExtendedBadRequest } from "src/exceptions/extended-bad-request";
@@ -26,6 +25,8 @@ import { upsertOfficer } from "controllers/leo/my-officers/upsert-officer";
 import { createCitizenViolations } from "lib/records/create-citizen-violations";
 import generateBlurPlaceholder from "lib/images/generate-image-blur-data";
 import { z } from "zod";
+import { RecordsInclude } from "controllers/leo/search/SearchController";
+import { leoProperties } from "lib/leo/activeOfficer";
 
 export const citizenInclude = {
   user: { select: userProperties },
@@ -34,8 +35,9 @@ export const citizenInclude = {
   vehicles: {
     orderBy: { createdAt: "desc" },
     include: {
+      trimLevels: true,
       flags: true,
-      model: { include: { value: true } },
+      model: { include: { trimLevels: true, value: true } },
       registrationStatus: true,
       insuranceStatus: true,
       TruckLog: true,
@@ -65,6 +67,10 @@ export const citizenInclude = {
   pilotLicense: true,
   waterLicense: true,
   dlCategory: { include: { value: true } },
+} as const;
+
+export const citizenIncludeWithRecords = {
+  ...citizenInclude,
   Record: {
     include: {
       officer: {
@@ -77,7 +83,7 @@ export const citizenInclude = {
       },
     },
   },
-} as const;
+};
 
 @Controller("/citizen")
 @UseBeforeEach(IsAuth)
@@ -159,6 +165,39 @@ export class CitizenController {
     }
 
     return _citizen;
+  }
+
+  @Get("/:id/records")
+  async getCitizenRecords(
+    @Context("cad") cad: { features?: Record<Feature, boolean>; miscCadSettings: MiscCadSettings },
+    @Context("user") user: User,
+    @PathParams("id") citizenId: string,
+  ): Promise<APITypes.GetCitizenByIdRecordsData> {
+    const checkCitizenUserId = shouldCheckCitizenUserId({ cad, user });
+
+    const citizen = await prisma.citizen.findFirst({
+      where: {
+        id: citizenId,
+        userId: checkCitizenUserId ? user.id : undefined,
+      },
+      include: citizenIncludeWithRecords,
+    });
+
+    if (!citizen) {
+      throw new NotFound("notFound");
+    }
+
+    const isEnabled = isFeatureEnabled({
+      feature: Feature.CITIZEN_RECORD_APPROVAL,
+      features: cad.features,
+      defaultReturn: false,
+    });
+
+    const records = await prisma.record.findMany({
+      ...RecordsInclude(isEnabled),
+      where: { ...RecordsInclude(isEnabled).where, citizenId: citizen.id },
+    });
+    return records;
   }
 
   @Delete("/:id")
@@ -368,7 +407,13 @@ export class CitizenController {
       }
     }
 
-    if (data.socialSecurityNumber) {
+    const isEditableSSNEnabled = isFeatureEnabled({
+      features: cad.features,
+      feature: Feature.EDITABLE_SSN,
+      defaultReturn: true,
+    });
+
+    if (data.socialSecurityNumber && isEditableSSNEnabled) {
       await validateSocialSecurityNumber({
         socialSecurityNumber: data.socialSecurityNumber,
         citizenId: citizen.id,
@@ -385,8 +430,11 @@ export class CitizenController {
           cad,
         })),
         socialSecurityNumber:
-          data.socialSecurityNumber ??
-          (!citizen.socialSecurityNumber ? generateString(9, { type: "numbers-only" }) : undefined),
+          data.socialSecurityNumber && isEditableSSNEnabled
+            ? data.socialSecurityNumber
+            : !citizen.socialSecurityNumber
+            ? generateString(9, { type: "numbers-only" })
+            : undefined,
       },
       include: { gender: true, ethnicity: true },
     });

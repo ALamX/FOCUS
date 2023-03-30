@@ -3,13 +3,12 @@ import { useImageUrl } from "hooks/useImageUrl";
 import { ContextMenu } from "components/shared/ContextMenu";
 import { useValues } from "context/ValuesContext";
 import { useUnitStatusChange } from "hooks/shared/useUnitsStatusChange";
-import { Draggable } from "components/shared/dnd/Draggable";
+import { Draggable } from "@snailycad/ui";
 import { DndActions } from "types/DndActions";
 import { ActiveUnitsQualificationsCard } from "components/leo/qualifications/ActiveUnitsQualificationsCard";
 import { useActiveDeputies } from "hooks/realtime/useActiveDeputies";
 import { useActiveDispatchers } from "hooks/realtime/use-active-dispatchers";
 import type { CombinedEmsFdUnit, EmsFdDeputy } from "@snailycad/types";
-import Image from "next/image";
 import { useDispatchState } from "state/dispatch/dispatch-state";
 import { isUnitCombinedEmsFd } from "@snailycad/utils";
 import { useRouter } from "next/router";
@@ -24,6 +23,7 @@ import { makeUnitName } from "lib/utils";
 import { ArrowRight } from "react-bootstrap-icons";
 import { generateContrastColor } from "lib/table/get-contrasting-text-color";
 import { classNames } from "lib/classNames";
+import { ImageWrapper } from "components/shared/image-wrapper";
 
 interface Props {
   isDispatch: boolean;
@@ -124,7 +124,8 @@ export function DeputyColumn({ deputy, isDispatch, nameAndCallsign, setTempUnit 
                 className={classNames("capitalize", canDrag ? "cursor-grab" : "cursor-default")}
               >
                 {!isUnitCombinedEmsFd(deputy) && deputy.imageId ? (
-                  <Image
+                  <ImageWrapper
+                    quality={70}
                     className="rounded-md w-[30px] h-[30px] object-cover mr-2 inline-block"
                     draggable={false}
                     src={makeImageUrl("units", deputy.imageId)!}

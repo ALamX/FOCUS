@@ -43,6 +43,10 @@ export const Feature = {
   CALL_911_APPROVAL: "CALL_911_APPROVAL",
   FORCE_DISCORD_AUTH: "FORCE_DISCORD_AUTH",
   FORCE_STEAM_AUTH: "FORCE_STEAM_AUTH",
+  EDITABLE_SSN: "EDITABLE_SSN",
+  EDITABLE_VIN: "EDITABLE_VIN",
+  SIGNAL_100_CITIZEN: "SIGNAL_100_CITIZEN",
+  FORCE_ACCOUNT_PASSWORD: "FORCE_ACCOUNT_PASSWORD",
 } as const;
 
 export type Feature = (typeof Feature)[keyof typeof Feature];
@@ -136,6 +140,7 @@ export const ValueType = {
   ADDRESS: "ADDRESS",
   EMERGENCY_VEHICLE: "EMERGENCY_VEHICLE",
   ADDRESS_FLAG: "ADDRESS_FLAG",
+  VEHICLE_TRIM_LEVEL: "VEHICLE_TRIM_LEVEL",
 } as const;
 
 export type ValueType = (typeof ValueType)[keyof typeof ValueType];

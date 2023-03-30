@@ -14,12 +14,12 @@ import { ModalIds } from "types/ModalIds";
 import { useModal } from "state/modalState";
 import { useFeatureEnabled } from "hooks/useFeatureEnabled";
 import { useImageUrl } from "hooks/useImageUrl";
-import Image from "next/image";
 import { useMounted } from "@casper124578/useful";
 import { usePermission } from "hooks/usePermission";
 import { defaultPermissions } from "@snailycad/permissions";
 import { useValues } from "context/ValuesContext";
 import dynamic from "next/dynamic";
+import { ImageWrapper } from "components/shared/image-wrapper";
 
 const TonesModal = dynamic(
   async () => (await import("components/dispatch/modals/tones-modal")).TonesModal,
@@ -31,6 +31,7 @@ const buttons: modalButtons.ModalButton[] = [
   modalButtons.nameSearchBtn,
   modalButtons.plateSearchBtn,
   modalButtons.weaponSearchBtn,
+  modalButtons.businessSearchBtn,
   modalButtons.customFieldSearchBtn,
   modalButtons.create911CallBtn,
   modalButtons.createWrittenWarningBtn,
@@ -95,7 +96,8 @@ export function ModalButtons({ initialActiveOfficer }: { initialActiveOfficer: A
           <span className="font-semibold">{t("Leo.activeOfficer")}: </span>
 
           {isUnitOfficer(activeOfficer) && activeOfficer.imageId ? (
-            <Image
+            <ImageWrapper
+              quality={70}
               className="rounded-md w-[30px] h-[30px] object-cover mx-2 inline"
               draggable={false}
               src={makeImageUrl("units", activeOfficer.imageId)!}

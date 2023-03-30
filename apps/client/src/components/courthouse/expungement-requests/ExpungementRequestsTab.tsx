@@ -1,5 +1,4 @@
 import { Table, useTableState } from "components/shared/Table";
-import { TabsContent } from "components/shared/TabList";
 import { useTranslations } from "next-intl";
 import { ExpungementRequestStatus } from "@snailycad/types";
 import dynamic from "next/dynamic";
@@ -7,7 +6,7 @@ import { getTitles } from "./RequestExpungement";
 import { Status } from "components/shared/Status";
 import { FullDate } from "components/shared/FullDate";
 import { useModal } from "state/modalState";
-import { Button } from "@snailycad/ui";
+import { Button, TabsContent } from "@snailycad/ui";
 import { ModalIds } from "types/ModalIds";
 import type { GetExpungementRequestsData } from "@snailycad/types/api";
 import { useTemporaryItem } from "hooks/shared/useTemporaryItem";
@@ -28,7 +27,7 @@ interface Props {
 }
 
 export function ExpungementRequestsTab(props: Props) {
-  const list = useList({ initialData: props.requests });
+  const list = useList({ initialData: props.requests, totalCount: props.requests.length });
   const [tempRequest, requestState] = useTemporaryItem(list.items);
 
   const common = useTranslations("Common");

@@ -9,12 +9,11 @@ import {
   isEmpty,
 } from "lib/utils";
 import { useTranslations } from "use-intl";
-import { Button, buttonVariants } from "@snailycad/ui";
+import { Button, buttonVariants, TabsContent } from "@snailycad/ui";
 import { useGenerateCallsign } from "hooks/useGenerateCallsign";
 import useFetch from "lib/useFetch";
 import { useRouter } from "next/router";
 import { Table, useAsyncTable, useTableState } from "components/shared/Table";
-import { TabsContent } from "components/shared/TabList";
 import { Status } from "components/shared/Status";
 import { usePermission, Permissions } from "hooks/usePermission";
 import { useFeatureEnabled } from "hooks/useFeatureEnabled";
@@ -34,8 +33,8 @@ import dynamic from "next/dynamic";
 import { FormField } from "components/form/FormField";
 import { Select } from "components/form/Select";
 import { useValues } from "context/ValuesContext";
-import Image from "next/image";
 import { useImageUrl } from "hooks/useImageUrl";
+import { ImageWrapper } from "components/shared/image-wrapper";
 
 const AlertModal = dynamic(async () => (await import("components/modal/AlertModal")).AlertModal, {
   ssr: false,
@@ -185,8 +184,8 @@ export function AllUnitsTab({ units }: Props) {
         </FormField>
       </SearchArea>
 
-      {asyncTable.items.length <= 0 ? (
-        <p className="mt-2">{t("Management.noUnits")}</p>
+      {asyncTable.noItemsAvailable ? (
+        <p>{t("Management.noUnits")}</p>
       ) : (
         <Table
           tableState={tableState}
@@ -200,7 +199,8 @@ export function AllUnitsTab({ units }: Props) {
               name: (
                 <div className="min-w-[144px]">
                   {unit.imageId ? (
-                    <Image
+                    <ImageWrapper
+                      quality={70}
                       className="rounded-md w-[30px] h-[30px] object-cover mr-2 inline-block"
                       draggable={false}
                       src={makeImageUrl("units", unit.imageId)!}
@@ -228,7 +228,7 @@ export function AllUnitsTab({ units }: Props) {
               callsign: generateCallsign(unit),
               badgeNumber: unit.badgeNumber,
               department: formatOfficerDepartment(unit) ?? common("none"),
-              departmentStatus: <Status>{departmentStatus}</Status>,
+              departmentStatus: <Status fallback="—">{departmentStatus}</Status>,
               division: formatUnitDivisions(unit),
               rank: <OfficerRank unit={unit} />,
               position: unit.position ?? common("none"),

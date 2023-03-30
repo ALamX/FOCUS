@@ -8,11 +8,11 @@ import { prisma } from "lib/data/prisma";
 import { FeatureNotEnabled } from "src/exceptions/feature-not-enabled";
 
 export interface IsFeatureEnabledOptions {
-  feature: TypesFeature | DatabaseFeature;
+  feature: TypesFeature | DatabaseFeature | (TypesFeature | DatabaseFeature)[];
 }
 
 export const DEFAULT_DISABLED_FEATURES: Partial<
-  Record<IsFeatureEnabledOptions["feature"], { isEnabled: boolean }>
+  Record<TypesFeature | DatabaseFeature, { isEnabled: boolean }>
 > = {
   CUSTOM_TEXTFIELD_VALUES: { isEnabled: false },
   DISCORD_AUTH: { isEnabled: false },
@@ -29,6 +29,8 @@ export const DEFAULT_DISABLED_FEATURES: Partial<
   CALL_911_APPROVAL: { isEnabled: false },
   FORCE_DISCORD_AUTH: { isEnabled: false },
   FORCE_STEAM_AUTH: { isEnabled: false },
+  SIGNAL_100_CITIZEN: { isEnabled: false },
+  FORCE_ACCOUNT_PASSWORD: { isEnabled: false },
 };
 
 export function createFeaturesObject(features?: CadFeature[] | undefined) {
@@ -74,7 +76,18 @@ class IsFeatureEnabledMiddleware implements MiddlewareMethods {
       }),
     );
 
-    const isEnabled = cad.features[options.feature as TypesFeature];
+    let isEnabled = Array.isArray(options.feature)
+      ? false
+      : cad.features[options.feature as TypesFeature];
+
+    if (Array.isArray(options.feature)) {
+      for (const feature of options.feature) {
+        if (cad.features[feature as TypesFeature]) {
+          isEnabled = true;
+          break;
+        }
+      }
+    }
 
     if (!isEnabled) {
       throw new FeatureNotEnabled(options);
