@@ -19,6 +19,9 @@
     "declareAlive": "Verklaar leven",
     "myDeputyLogs": "Mijn hulpverlener logs",
     "emergencyVehicle": "Hulpverleningsvoertuig",
-    "alert_deleteDeputy": "Weet je zeker dat je <span>{deputy}</span> wilt verwijderen ? Dit kan niet ongedaan worden."
+    "alert_deleteDeputy": "Weet je zeker dat je <span>{deputy}</span> wilt verwijderen ? Dit kan niet ongedaan worden.",
+    "assignedToCall#": "{activeVehicle}, begeef u naar {location}",
+    "assignedToCall#WithType": "{activeVehicle}, begeef u naar {location} voor: {callType}",
+    "emsFdIncidents": "112 Incidenten"
   }
 }

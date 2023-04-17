@@ -29,6 +29,10 @@
     "GENERAL_SETTINGS": "Algemene instellingen",
     "FEATURES": "Eigenschappen",
     "MISC_SETTINGS": "Allerlei Instellingen",
+    "DEFAULT_PERMISSIONS": "Standaard permissions",
+    "API_TOKEN": "API Token",
+    "DISCORD_ROLES": "Discord Rollen",
+    "DISCORD_WEBHOOKS": "Discord Webhooks",
     "deleteBusiness": "Verwijder Bedrijf",
     "giveTempPassword": "Geef tijdelijk wachtwoord",
     "continue": "Ja , volgende.",
@@ -106,6 +110,8 @@
     "importCitizensDescription": "Hier kunt u burgers die niet aan een geregistreerde gebruiker verbonden zijn, massaal importeren.",
     "importVehiclesDescription": "Hier kunt u massaal voertuigen importeren die op naam van een burger staan. In de onderstaande tabel ziet u alle geregistreerde voertuigen.",
     "importWeaponsDescription": "Hier kunt u massaal wapens invoeren die geregistreerd staan bij een burger. In de onderstaande tabel ziet u alle geregistreerde wapens.",
+    "RAW_WEBHOOKS": "Raw Webhooks",
+    "LIVE_MAP": "Live Map",
     "alert_deleteCustomRole": "Weet je zeker dat je <span>{role}</span> wilt verwijderen ?  Dit kan niet ongedaan worden! ",
     "alert_deleteUnit": "Weet je zeker dat je <span>{unit}</span> wilt verwijderen ? Dit kan niet ongedaan worden!",
     "alert_deleteCustomField": "Weet je zeker dat je dit aangepast velt wilt verwijderen ? Dit kan niet ongedaan worden!. Alle waarden gemaakt met dit veld zullen ook verwijderd worden.",
@@ -123,6 +129,15 @@
     "unitsSetOffDuty": "Geselecteerde eenheden zijn buiten dienst gesteld: <span>{value}</span>",
     "calls911Purged": "Geselecteerde oproepen zijn gewist. Deze gesprekken kunnen niet worden hersteld en werden permanent gewist: <span>{value}</span>. ",
     "cadAPITokenRegenerated": "Het CAD API-token is geregenereerd.",
-    "temporaryUnitCreate": "Er is een tijdelijke eenheid aangemaakt met id: <span>{value}</span>."
+    "temporaryUnitCreate": "Er is een tijdelijke eenheid aangemaakt met id: <span>{value}</span>.",
+    "cadAPITokenRemoved": "The CAD API token has been removed.",
+    "cadAPITokenEnabled": "The CAD API token has been enabled.",
+    "expungementAccepted": "an expungement request has been accepted with citizen id <span>{value}</span>.",
+    "expungementDeclined": "an expungement request has been declined with citizen id <span>{value}</span>.",
+    "nameChangeRequestAccepted": "a name change request has been accepted with citizen id <span>{value}</span>.",
+    "nameChangeRequestDeclined": "a name change request has been declined with citizen id <span>{value}</span>.",
+    "activeWarrantAccepted": "an active warrant request has been accepted with id <span>{value}</span>.",
+    "activeWarrantDeclined": "an active warrant request has been declined with id <span>{value}</span>.",
+    "bulkRemoveValues": "Selected values have been removed: <span>{value}</span>"
   }
 }

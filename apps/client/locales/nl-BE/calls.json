@@ -61,6 +61,7 @@
     "pendingApproval": "Deze oproep wacht op goedkeuring.",
     "approvalMessage": "Deze oproep moet eerst geaccepteerd worden voor actieve agenten deze kunnen zien. Om deze te accepteren, klik op de \"Opslaan en accepteren\" knop onderaan.",
     "saveAndAccept": "Opslaan en accepteren",
+    "noUnitsAdded": "Er zijn geen eenheden toegewezen aan deze oproep.",
     "alert_purgeSelectedCalls": "Weet u zeker dat u {length} item(s) wilt wissen? Dit zal {length} item(s) verwijderen uit de database. Deze actie kan niet ongedaan worden gemaakt.",
     "alert_deleteCallEvent": "Weet je zeker dat je deze gebeurtenis wil verwijderen ? Dit kan niet ongedaan worden.",
     "alert_end911Call": "Weet je zeker dat je wil ophangen? ",
@@ -74,6 +75,7 @@
     "unitArrivedOnScene": "<span>{unit}</span> is aangekomen op de melding.",
     "unitPressedPanicButton": "<span>{unit}</span> heeft de paniekknop geactiveerd.",
     "unitEnRoute": "<span>{unit}</span> is onderweg.",
-    "unitOnScene": "<span>{unit}</span> is ter plaatse."
+    "unitOnScene": "<span>{unit}</span> is ter plaatse.",
+    "unitSituationCodeChange": "<span>{unit}</span> heeft zijn/haar status aangepast naar <span>{situationCode}</span>."
   }
 }

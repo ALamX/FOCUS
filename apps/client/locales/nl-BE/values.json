@@ -163,6 +163,12 @@
     "MANAGE": "Beheer adresopmerkingen",
     "ADD": "Voeg een adresopmerking toe",
     "DELETE": "Verwijder een adresopmerking",
-    "EDIT": "Bewerk een adresopmerking"
+    "EDIT": "Bewerk een adresopmerking"  
+  },
+  "VEHICLE_TRIM_LEVEL": {
+    "MANAGE": "Manage vehicle trim levels",
+    "ADD": "Add trim level",
+    "DELETE": "Delete trim level",
+    "EDIT": "Edit trim level"
   }
 }

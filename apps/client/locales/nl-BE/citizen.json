@@ -87,6 +87,7 @@
     "dmvStatus": "DIV Status",
     "transfer": "Draag over",
     "transferVehicle": "Voertuig overdragen",
+    "trimLevels": "Trim Levels",
     "transferVehicleInfo": "Draag voertuig <span>{model}</span> over aan een nieuwe eigenaar. Dit betekent dat je niet langer eigenaar ben van dit voertuig.",
     "alert_deleteVehicle": "Weet je zeker dat je dit voertuig wilt verwijderen ?"
   },
