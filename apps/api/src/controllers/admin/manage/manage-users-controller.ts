@@ -46,7 +46,6 @@ export class ManageUsersController {
 
   @Get("/")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [
       Permissions.ViewUsers,
       Permissions.ManageUsers,
@@ -69,6 +68,8 @@ export class ManageUsersController {
                   OR: [
                     { username: { contains: query, mode: Prisma.QueryMode.insensitive } },
                     { id: query },
+                    { steamId: query },
+                    { discordId: query },
                   ],
                 }
               : {}),
@@ -94,7 +95,6 @@ export class ManageUsersController {
 
   @Get("/prune")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async getInactiveUsers(@QueryParams("days", Number) days = 30) {
@@ -123,7 +123,6 @@ export class ManageUsersController {
 
   @Delete("/prune")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async pruneInactiveUsers(
@@ -154,7 +153,6 @@ export class ManageUsersController {
 
   @Get("/:id")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [
       Permissions.ViewUsers,
       Permissions.ManageUsers,
@@ -186,7 +184,6 @@ export class ManageUsersController {
 
   @Post("/search")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async searchUsers(
@@ -203,7 +200,6 @@ export class ManageUsersController {
 
   @Put("/permissions/:id")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async updateUserPermissionsById(
@@ -246,7 +242,6 @@ export class ManageUsersController {
 
   @Put("/roles/:id")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async updateUserRolesById(
@@ -295,7 +290,6 @@ export class ManageUsersController {
 
   @Put("/:id")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async updateUserById(
@@ -313,10 +307,6 @@ export class ManageUsersController {
       throw new NotFound("notFound");
     }
 
-    if (user.rank === Rank.OWNER && data.rank !== Rank.OWNER) {
-      throw new ExtendedBadRequest({ rank: "cannotUpdateOwnerRank" });
-    }
-
     if (data.discordId && (await isDiscordIdInUse(data.discordId, user.id))) {
       throw new ExtendedBadRequest({ discordId: "discordIdInUse" });
     }
@@ -327,14 +317,7 @@ export class ManageUsersController {
       },
       data: {
         username: data.username,
-        isLeo: data.isLeo,
-        isSupervisor: data.isSupervisor,
-        isDispatch: data.isDispatch,
-        isEmsFd: data.isEmsFd,
-        isTow: data.isTow,
-        isTaxi: data.isTaxi,
         steamId: data.steamId,
-        rank: user.rank === Rank.OWNER ? Rank.OWNER : Rank[data.rank as Rank],
         discordId: data.discordId,
       },
       select: manageUsersSelect(false),
@@ -351,7 +334,6 @@ export class ManageUsersController {
 
   @Post("/temp-password/:id")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers, Permissions.BanUsers, Permissions.DeleteUsers],
   })
   async giveUserTempPassword(
@@ -402,7 +384,6 @@ export class ManageUsersController {
 
   @Post("/:id/:type")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.BanUsers],
   })
   async banUserById(
@@ -460,7 +441,6 @@ export class ManageUsersController {
 
   @Delete("/:id")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.DeleteUsers],
   })
   async deleteUserAccount(
@@ -498,7 +478,6 @@ export class ManageUsersController {
 
   @Post("/pending/:id/:type")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers],
   })
   async acceptOrDeclineUser(
@@ -545,7 +524,6 @@ export class ManageUsersController {
 
   @Delete("/:userId/api-token")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers],
   })
   async revokeApiToken(
@@ -589,7 +567,6 @@ export class ManageUsersController {
 
   @Delete("/:userId/2fa")
   @UsePermissions({
-    fallback: (u) => u.rank !== Rank.USER,
     permissions: [Permissions.ManageUsers],
   })
   async disableUser2FA(

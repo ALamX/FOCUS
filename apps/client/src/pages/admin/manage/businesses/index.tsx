@@ -5,7 +5,7 @@ import { getSessionUser } from "lib/auth";
 import { getTranslations } from "lib/getTranslation";
 import type { GetServerSideProps } from "next";
 import { useModal } from "state/modalState";
-import { Rank } from "@snailycad/types";
+
 import useFetch from "lib/useFetch";
 import { AdminLayout } from "components/admin/AdminLayout";
 import { ModalIds } from "types/ModalIds";
@@ -57,7 +57,7 @@ export default function ManageBusinesses({ businesses: data }: Props) {
     },
   ];
 
-  if (hasPermissions([Permissions.ManageBusinesses], true) && businessWhitelisted) {
+  if (hasPermissions([Permissions.ManageBusinesses]) && businessWhitelisted) {
     TABS[1] = {
       name: `${t("pendingBusinesses")}`,
       value: "pendingBusinesses",
@@ -88,7 +88,6 @@ export default function ManageBusinesses({ businesses: data }: Props) {
   return (
     <AdminLayout
       permissions={{
-        fallback: (u) => u.rank !== Rank.USER,
         permissions: [
           Permissions.ViewBusinesses,
           Permissions.DeleteBusinesses,
@@ -111,44 +110,50 @@ export default function ManageBusinesses({ businesses: data }: Props) {
           ) : (
             <Table
               tableState={tableState}
-              data={asyncTable.items.map((business) => ({
-                id: business.id,
-                name: business.name,
-                owner: `${business.citizen.name} ${business.citizen.surname}`,
-                user: business.user.username,
-                status: <Status fallback="—">{business.status}</Status>,
-                whitelisted: common(yesOrNoText(business.whitelisted)),
-                actions: (
-                  <>
-                    <Button
-                      className="ml-2"
-                      onPress={() => handleDeleteClick(business)}
-                      size="xs"
-                      variant="danger"
-                    >
-                      {common("delete")}
-                    </Button>
+              data={asyncTable.items.map((business) => {
+                const owners = business.employees;
 
-                    <Link
-                      className={classNames(
-                        buttonVariants.default,
-                        buttonSizes.xs,
-                        "border rounded-md ml-2",
-                      )}
-                      href={`/admin/manage/businesses/${business.id}`}
-                    >
-                      {common("manage")}
-                    </Link>
-                  </>
-                ),
-              }))}
+                return {
+                  id: business.id,
+                  name: business.name,
+                  owners: owners
+                    .map((owner) => `${owner.citizen.name} ${owner.citizen.surname}`)
+                    .join(", "),
+                  user: business.user.username,
+                  status: <Status fallback="—">{business.status}</Status>,
+                  whitelisted: common(yesOrNoText(business.whitelisted)),
+                  actions: (
+                    <>
+                      <Button
+                        className="ml-2"
+                        onPress={() => handleDeleteClick(business)}
+                        size="xs"
+                        variant="danger"
+                      >
+                        {common("delete")}
+                      </Button>
+
+                      <Link
+                        className={classNames(
+                          buttonVariants.default,
+                          buttonSizes.xs,
+                          "border rounded-md ml-2",
+                        )}
+                        href={`/admin/manage/businesses/${business.id}`}
+                      >
+                        {common("manage")}
+                      </Link>
+                    </>
+                  ),
+                };
+              })}
               columns={[
                 { header: common("name"), accessorKey: "name" },
-                { header: t("owner"), accessorKey: "owner" },
+                { header: t("owners"), accessorKey: "owners" },
                 { header: t("user"), accessorKey: "user" },
                 businessWhitelisted ? { header: t("status"), accessorKey: "status" } : null,
                 { header: t("whitelisted"), accessorKey: "whitelisted" },
-                hasPermissions([Permissions.DeleteBusinesses], true)
+                hasPermissions([Permissions.DeleteBusinesses])
                   ? { header: common("actions"), accessorKey: "actions" }
                   : null,
               ]}

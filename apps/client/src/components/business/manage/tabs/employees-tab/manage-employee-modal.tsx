@@ -1,4 +1,4 @@
-import { Loader, Button } from "@snailycad/ui";
+import { Loader, Button, SwitchField } from "@snailycad/ui";
 import { FormField } from "components/form/FormField";
 import { Modal } from "components/modal/Modal";
 import { useModal } from "state/modalState";
@@ -9,7 +9,6 @@ import { ModalIds } from "types/ModalIds";
 import { useTranslations } from "use-intl";
 import { UPDATE_EMPLOYEE_SCHEMA } from "@snailycad/schemas";
 import { handleValidate } from "lib/handleValidate";
-import { Toggle } from "components/form/Toggle";
 import { Select } from "components/form/Select";
 import { FormRow } from "components/form/FormRow";
 import { useValues } from "context/ValuesContext";
@@ -79,16 +78,17 @@ export function ManageEmployeeModal({ onClose, onUpdate, employee, isAdmin }: Pr
     }
   }
 
-  const filteredRoles =
-    employee?.role?.as === EmployeeAsEnum.OWNER
-      ? rolesToSelect
-      : rolesToSelect.filter((v) => v.as !== EmployeeAsEnum.OWNER);
+  const filteredRoles = isAdmin
+    ? rolesToSelect
+    : rolesToSelect.filter((v) => v.as !== EmployeeAsEnum.OWNER);
 
   const validate = handleValidate(UPDATE_EMPLOYEE_SCHEMA);
   const INITIAL_VALUES = {
     employeeId: employee?.id ?? "",
     canCreatePosts: employee?.canCreatePosts ?? true,
     employeeOfTheMonth: employee?.employeeOfTheMonth ?? false,
+    canManageEmployees: employee?.canManageEmployees ?? false,
+    canManageVehicles: employee?.canManageVehicles ?? false,
     roleId: employee?.roleId ?? null,
   };
 
@@ -100,7 +100,7 @@ export function ManageEmployeeModal({ onClose, onUpdate, employee, isAdmin }: Pr
       onClose={handleClose}
     >
       <Formik validate={validate} onSubmit={onSubmit} initialValues={INITIAL_VALUES}>
-        {({ handleChange, errors, values, isValid }) => (
+        {({ handleChange, setFieldValue, errors, values, isValid }) => (
           <Form>
             <FormField errorMessage={errors.roleId} label={t("role")}>
               <Select
@@ -115,21 +115,35 @@ export function ManageEmployeeModal({ onClose, onUpdate, employee, isAdmin }: Pr
             </FormField>
 
             <FormRow>
-              <FormField errorMessage={errors.canCreatePosts} label={t("canCreatePosts")}>
-                <Toggle
-                  name="canCreatePosts"
-                  onCheckedChange={handleChange}
-                  value={values.canCreatePosts}
-                />
-              </FormField>
+              <SwitchField
+                isSelected={values.canManageEmployees}
+                onChange={(isSelected) => setFieldValue("canManageEmployees", isSelected)}
+              >
+                {t("canManageEmployees")}
+              </SwitchField>
 
-              <FormField errorMessage={errors.employeeOfTheMonth} label={t("employeeOfTheMonth")}>
-                <Toggle
-                  name="employeeOfTheMonth"
-                  onCheckedChange={handleChange}
-                  value={values.employeeOfTheMonth}
-                />
-              </FormField>
+              <SwitchField
+                isSelected={values.canManageVehicles}
+                onChange={(isSelected) => setFieldValue("canManageVehicles", isSelected)}
+              >
+                {t("canManageVehicles")}
+              </SwitchField>
+            </FormRow>
+
+            <FormRow>
+              <SwitchField
+                isSelected={values.canCreatePosts}
+                onChange={(isSelected) => setFieldValue("canCreatePosts", isSelected)}
+              >
+                {t("canCreatePosts")}
+              </SwitchField>
+
+              <SwitchField
+                isSelected={values.employeeOfTheMonth}
+                onChange={(isSelected) => setFieldValue("employeeOfTheMonth", isSelected)}
+              >
+                {t("employeeOfTheMonth")}
+              </SwitchField>
             </FormRow>
 
             <footer className="flex justify-end mt-5">

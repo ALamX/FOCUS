@@ -82,7 +82,6 @@ export const citizenSearchIncludeOrSelect = (
       ...defaultPermissions.defaultDispatchPermissions,
       ...defaultPermissions.defaultEmsFdPermissions,
     ],
-    fallback: (user) => user.isLeo || user.isDispatch || user.isEmsFd,
   });
 
   if (hasPerms) {
@@ -92,7 +91,6 @@ export const citizenSearchIncludeOrSelect = (
         ...citizenInclude,
         vehicles: { include: vehicleSearchInclude },
         addressFlags: true,
-        businesses: true,
         medicalRecords: true,
         customFields: { include: { field: true } },
         warrants: { include: { officer: { include: leoProperties } } },
@@ -192,7 +190,6 @@ export class LeoSearchController {
   @Post("/business")
   @Description("Search businesses by their name")
   @UsePermissions({
-    fallback: (u) => u.isLeo || u.isDispatch,
     permissions: [Permissions.Leo, Permissions.Dispatch],
   })
   async searchBusinessByName(
@@ -218,7 +215,6 @@ export class LeoSearchController {
       },
       include: {
         Record: RecordsInclude(isEnabled),
-        citizen: true,
         vehicles: {
           include: vehicleSearchInclude,
         },
@@ -237,7 +233,6 @@ export class LeoSearchController {
   @Post("/weapon")
   @Description("Search weapons by their serialNumber")
   @UsePermissions({
-    fallback: (u) => u.isLeo || u.isDispatch,
     permissions: [Permissions.Leo, Permissions.Dispatch],
   })
   async searchWeapon(
@@ -275,7 +270,6 @@ export class LeoSearchController {
   @Post("/vehicle")
   @Description("Search vehicles by their plate or vinNumber")
   @UsePermissions({
-    fallback: (u) => u.isLeo || u.isDispatch,
     permissions: [Permissions.Leo, Permissions.Dispatch],
   })
   async searchVehicle(
@@ -316,7 +310,6 @@ export class LeoSearchController {
   @Post("/custom-field")
   @Description("Search a citizen, vehicle or weapon via a custom field")
   @UsePermissions({
-    fallback: (u) => u.isLeo || u.isDispatch,
     permissions: [Permissions.Leo, Permissions.Dispatch],
   })
   async customFieldSearch(
